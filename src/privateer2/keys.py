@@ -2,7 +2,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 import docker
-from privateer2.util import string_to_container
+from privateer2.util import string_from_volume, string_to_volume
 
 
 def keygen(cfg, name):
@@ -20,46 +20,40 @@ def configure(cfg, name):
     cl = docker.from_env()
     data = _keys_data(cfg, name)
 
-    image = "alpine"
-    volume_name = _key_volume_name(cfg, name)
-    cl.volumes.create(volume_name)
-    mounts = [docker.types.Mount("/keys", volume_name, type="volume")]
-    container = cl.containers.create(image, mounts=mounts)
-    try:
-        string_to_container(
-            data["private"], container, "/keys/id_rsa", uid=0, gid=0, mode=0o600
-        )
-        string_to_container(
-            data["public"],
-            container,
-            "/keys/id_rsa.pub",
+    vol = _key_volume_name(cfg, name)
+    cl.volumes.create(vol)
+    string_to_volume(
+        data["public"], vol, "id_rsa.pub", uid=0, gid=0, mode=0o644
+    )
+    string_to_volume(data["private"], vol, "id_rsa", uid=0, gid=0, mode=0o600)
+    if data["authorized_keys"]:
+        string_to_volume(
+            data["authorized_keys"],
+            vol,
+            "authorized_keys",
             uid=0,
             gid=0,
-            mode=0o644,
+            mode=0o600,
         )
-        if data["authorized_keys"]:
-            string_to_container(
-                data["authorized_keys"],
-                container,
-                "/keys/authorized_keys",
-                uid=0,
-                gid=0,
-                mode=0o644,
-            )
-        if data["known_hosts"]:
-            string_to_container(
-                data["known_hosts"],
-                container,
-                "/keys/known_hosts",
-                uid=0,
-                gid=0,
-                mode=0o644,
-            )
-        string_to_container(
-            f"{name}\n", container, "/keys/name", uid=0, gid=0, mode=0o644
+    if data["known_hosts"]:
+        string_to_volume(
+            data["known_hosts"], vol, "known_hosts", uid=0, gid=0, mode=0o600
         )
-    finally:
-        container.remove()
+    string_to_volume(name, vol, "name", uid=0, gid=0)
+
+
+def check(cfg, name):
+    machine = _machine_config(cfg, name)
+    try:
+        docker.from_env().volumes.get(machine.key_volume)
+    except docker.errors.VolumeNotFound:
+        msg = f"'{name}' looks unconfigured"
+        raise Exception(msg) from None
+    found = string_from_volume(machine.key_volume, "name")
+    if found != name:
+        msg = f"Configuration is for '{found}', not '{name}'"
+        raise Exception(msg)
+    return machine
 
 
 def _get_pubkeys(vault, prefix, nms):
@@ -112,8 +106,12 @@ def _keys_data(cfg, name):
 
 
 def _key_volume_name(cfg, name):
+    return _machine_config(cfg, name).key_volume
+
+
+def _machine_config(cfg, name):
     for el in cfg.servers + cfg.clients:
         if el.name == name:
-            return el.key_volume
+            return el
     msg = "Invalid configuration, can't determine volume name"
     raise Exception(msg)

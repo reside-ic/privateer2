@@ -8,7 +8,7 @@ def test_can_read_config():
     assert len(cfg.servers) == 1
     assert cfg.servers[0].name == "alice"
     assert cfg.servers[0].hostname == "alice.example.com"
-    assert cfg.servers[0].port == 22
+    assert cfg.servers[0].port == 10022
     assert len(cfg.clients) == 1
     assert cfg.clients[0].name == "bob"
     assert cfg.clients[0].backup == ["data"]

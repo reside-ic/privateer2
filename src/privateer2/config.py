@@ -16,6 +16,8 @@ class Server(BaseModel):
     hostname: str
     port: int
     key_volume: str = "privateer_keys"
+    data_volume: str = "privateer_data"
+    container: str = "privateer_server"
 
 
 class Client(BaseModel):
@@ -42,6 +44,7 @@ class Config(BaseModel):
     clients: List[Client]
     volumes: List[Volume]
     vault: Vault
+    tag: str = "docker"
 
     def list_servers(self):
         return [x.name for x in self.servers]

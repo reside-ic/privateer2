@@ -3,6 +3,33 @@ import os.path
 import tarfile
 import tempfile
 from contextlib import contextmanager
+from pathlib import Path
+
+import docker
+
+
+def string_to_volume(text, volume, path, **kwargs):
+    _ensure_image("alpine")
+    dest = Path("/dest")
+    mounts = [docker.types.Mount(str(dest), volume, type="volume")]
+    cl = docker.from_env()
+    container = cl.containers.create("alpine", mounts=mounts)
+    try:
+        string_to_container(text, container, dest / path, **kwargs)
+    finally:
+        container.remove()
+
+
+def string_from_volume(volume, path):
+    _ensure_image("alpine")
+    src = Path("/src")
+    mounts = [docker.types.Mount(str(src), volume, type="volume")]
+    cl = docker.from_env()
+    container = cl.containers.create("alpine", mounts=mounts)
+    try:
+        return string_from_container(container, src / path)
+    finally:
+        container.remove()
 
 
 def string_to_container(text, container, path, **kwargs):
@@ -69,3 +96,31 @@ def _setdictvals(new, container):
         else:
             container[k] = v
     return container
+
+
+def string_from_container(container, path):
+    return bytes_from_container(container, path).decode("utf-8")
+
+
+def bytes_from_container(container, path):
+    stream, status = container.get_archive(path)
+    try:
+        fd, tmp = tempfile.mkstemp(text=False)
+        with os.fdopen(fd, "wb") as f:
+            for d in stream:
+                f.write(d)
+        with open(tmp, "rb") as f:
+            t = tarfile.open(mode="r", fileobj=f)
+            p = t.extractfile(os.path.basename(path))
+            return p.read()
+    finally:
+        os.remove(tmp)
+
+
+def _ensure_image(name):
+    cl = docker.from_env()
+    try:
+        cl.images.get(name)
+    except docker.errors.ImageNotFound:
+        print(f"Pulling {name}")
+        cl.images.pull(name)

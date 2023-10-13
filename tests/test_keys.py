@@ -1,11 +1,13 @@
 import random
 import string
 
+import pytest
 import vault_dev
 
 import docker
 from privateer2.config import read_config
-from privateer2.keys import _keys_data, configure, keygen
+from privateer2.keys import _keys_data, check, configure, keygen
+from privateer2.util import string_from_volume
 
 
 def rand_str(n=8):
@@ -71,6 +73,7 @@ def test_can_unpack_keys_for_server():
             "id_rsa.pub",
             "name",
         }
+        assert string_from_volume(vol, "name") == "alice"
         client.volumes.get(vol).remove()
 
 
@@ -94,4 +97,10 @@ def test_can_unpack_keys_for_client():
             "id_rsa.pub",
             "name",
         }
+        assert string_from_volume(vol, "name") == "bob"
+        assert check(cfg, "bob").key_volume == vol
+        msg = "Configuration is for 'bob', not 'alice'"
+        cfg.servers[0].key_volume = vol
+        with pytest.raises(Exception, match=msg):
+            check(cfg, "alice")
         client.volumes.get(vol).remove()
