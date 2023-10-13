@@ -1,9 +1,9 @@
 import random
 import string
 
-import docker
 import vault_dev
 
+import docker
 from privateer2.config import read_config
 from privateer2.keys import _keys_data, configure, keygen
 
@@ -32,7 +32,7 @@ def test_can_generate_server_keys_data():
         keygen(cfg, "alice")
         keygen(cfg, "bob")
         dat = _keys_data(cfg, "alice")
-        assert dat["name"] is "alice"
+        assert dat["name"] == "alice"
         assert dat["known_hosts"] is None
         assert dat["authorized_keys"].startswith("ssh-rsa")
 
@@ -44,10 +44,11 @@ def test_can_generate_client_keys_data():
         keygen(cfg, "alice")
         keygen(cfg, "bob")
         dat = _keys_data(cfg, "bob")
-        assert dat["name"] is "bob"
+        assert dat["name"] == "bob"
         assert dat["authorized_keys"] is None
         assert dat["known_hosts"].startswith(
-            "[alice.example.com]:10022 ssh-rsa")
+            "[alice.example.com]:10022 ssh-rsa"
+        )
 
 
 def test_can_unpack_keys_for_server():
@@ -61,10 +62,14 @@ def test_can_unpack_keys_for_server():
         configure(cfg, "alice")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
-        res = client.containers.run("alpine", mounts=mounts,
-                                    command=["ls", "/keys"], remove=True)
+        res = client.containers.run(
+            "alpine", mounts=mounts, command=["ls", "/keys"], remove=True
+        )
         assert set(res.decode("UTF-8").strip().split("\n")) == {
-            "authorized_keys", "id_rsa", "id_rsa.pub", "name"
+            "authorized_keys",
+            "id_rsa",
+            "id_rsa.pub",
+            "name",
         }
         client.volumes.get(vol).remove()
 
@@ -80,8 +85,13 @@ def test_can_unpack_keys_for_client():
         configure(cfg, "bob")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
-        res = client.containers.run("alpine", mounts=mounts, command=["ls", "/keys"], remove=True)
+        res = client.containers.run(
+            "alpine", mounts=mounts, command=["ls", "/keys"], remove=True
+        )
         assert set(res.decode("UTF-8").strip().split("\n")) == {
-            "known_hosts", "id_rsa", "id_rsa.pub", "name"
+            "known_hosts",
+            "id_rsa",
+            "id_rsa.pub",
+            "name",
         }
         client.volumes.get(vol).remove()

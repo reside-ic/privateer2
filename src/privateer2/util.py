@@ -39,7 +39,12 @@ def simple_tar(path, name, **kwargs):
     f = tempfile.NamedTemporaryFile()
     t = tarfile.open(mode="w", fileobj=f)
     abs_path = os.path.abspath(path)
-    t.add(abs_path, arcname=name, recursive=False, filter=set_permissions(**kwargs))
+    t.add(
+        abs_path,
+        arcname=name,
+        recursive=False,
+        filter=set_permissions(**kwargs),
+    )
     t.close()
     f.seek(0)
     return f
@@ -47,7 +52,9 @@ def simple_tar(path, name, **kwargs):
 
 @contextmanager
 def transient_envvar(**kwargs):
-    prev = {k: os.environ[k] if k in os.environ else None for k in kwargs.keys()}
+    prev = {
+        k: os.environ[k] if k in os.environ else None for k in kwargs.keys()
+    }
     try:
         _setdictvals(kwargs, os.environ)
         yield
