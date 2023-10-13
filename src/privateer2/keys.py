@@ -66,7 +66,10 @@ def _keys_data(cfg, name):
         ret["authorized_keys"] = "".join([f"{v}\n" for v in keys.values()])
     if name in cfg.list_clients():
         keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_servers())
-        ret["known_hosts"] = "".join([f"{k} {v}\n" for k, v in keys.items()])
+        known_hosts = []
+        for s in cfg.servers:
+            known_hosts.append(f"[{s.hostname}]:{s.port} {keys[s.name]}\n")
+        ret["known_hosts"] = "".join(known_hosts)
     return ret
 
 

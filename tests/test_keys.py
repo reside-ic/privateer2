@@ -5,7 +5,7 @@ import docker
 import vault_dev
 
 from privateer2.config import read_config
-from privateer2.keys import configure, keygen
+from privateer2.keys import _keys_data, configure, keygen
 
 
 def rand_str(n=8):
@@ -25,6 +25,31 @@ def test_can_create_keys():
         assert "PRIVATE KEY" in pair["private"]
 
 
+def test_can_generate_server_keys_data():
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        keygen(cfg, "alice")
+        keygen(cfg, "bob")
+        dat = _keys_data(cfg, "alice")
+        assert dat["name"] is "alice"
+        assert dat["known_hosts"] is None
+        assert dat["authorized_keys"].startswith("ssh-rsa")
+
+
+def test_can_generate_client_keys_data():
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        keygen(cfg, "alice")
+        keygen(cfg, "bob")
+        dat = _keys_data(cfg, "bob")
+        assert dat["name"] is "bob"
+        assert dat["authorized_keys"] is None
+        assert dat["known_hosts"].startswith(
+            "[alice.example.com]:10022 ssh-rsa")
+
+
 def test_can_unpack_keys_for_server():
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
@@ -36,8 +61,11 @@ def test_can_unpack_keys_for_server():
         configure(cfg, "alice")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
-        res = client.containers.run("alpine", mounts=mounts, command=["ls", "/keys"], remove=True)
-        assert set(res.decode("UTF-8").strip().split("\n")) == {"authorized_keys", "id_rsa", "id_rsa.pub", "name"}
+        res = client.containers.run("alpine", mounts=mounts,
+                                    command=["ls", "/keys"], remove=True)
+        assert set(res.decode("UTF-8").strip().split("\n")) == {
+            "authorized_keys", "id_rsa", "id_rsa.pub", "name"
+        }
         client.volumes.get(vol).remove()
 
 
@@ -53,5 +81,7 @@ def test_can_unpack_keys_for_client():
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
         res = client.containers.run("alpine", mounts=mounts, command=["ls", "/keys"], remove=True)
-        assert set(res.decode("UTF-8").strip().split("\n")) == {"known_hosts", "id_rsa", "id_rsa.pub", "name"}
+        assert set(res.decode("UTF-8").strip().split("\n")) == {
+            "known_hosts", "id_rsa", "id_rsa.pub", "name"
+        }
         client.volumes.get(vol).remove()
