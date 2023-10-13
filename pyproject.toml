@@ -24,20 +24,31 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+    "cryptography",
+    "docker",
+    "docopt",
+    "hvac",
+    "pydantic"
+]
 
 [project.urls]
 Documentation = "https://github.com/unknown/privateer2#readme"
 Issues = "https://github.com/unknown/privateer2/issues"
 Source = "https://github.com/unknown/privateer2"
 
+[project.scripts]
+privateer2 = "privateer2.cli:main"
+
 [tool.hatch.version]
 path = "src/privateer2/__about__.py"
 
 [tool.hatch.envs.default]
+python = "python3"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "vault-dev"
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
