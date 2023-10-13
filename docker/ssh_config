@@ -1,0 +1,5 @@
+PasswordAuthentication no
+IdentityFile /run/privateer/id_rsa
+SendEnv LANG LC_*
+HashKnownHosts no
+UserKnownHostsFile /run/privateer/known_hosts
