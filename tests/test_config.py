@@ -1,7 +1,6 @@
-from vault_dev import Server as vault_test_server
+import vault_dev
 
 from privateer2.config import read_config
-from privateer2.util import transient_envvar
 
 
 def test_can_read_config():
@@ -24,7 +23,7 @@ def test_can_read_config():
 
 def test_can_create_vault_client():
     cfg = read_config("example/simple.json")
-    with vault_test_server(export_token=True) as server:
+    with vault_dev.Server(export_token=True) as server:
         cfg.vault.url = server.url()
         client = cfg.vault.client()
         assert client.is_authenticated()

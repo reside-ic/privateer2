@@ -1,8 +1,10 @@
 import json
 from typing import List
+
 from pydantic import BaseModel
 
 from privateer2.vault import vault_client
+
 
 def read_config(path):
     with open(path) as f:

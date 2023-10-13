@@ -1,7 +1,4 @@
 import docker
-import hvac
-import re
-import os
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -25,51 +22,37 @@ def configure(cfg, name):
 
     image = "alpine"
     volume_name = _key_volume_name(cfg, name)
-    v = cl.volumes.create(volume_name)
+    cl.volumes.create(volume_name)
     mounts = [docker.types.Mount("/keys", volume_name, type="volume")]
     container = cl.containers.create(image, mounts=mounts)
     try:
-        string_to_container(data["private"], container, "/keys/id_rsa",
-                            uid=0, gid=0, mode=0o600)
-        string_to_container(data["public"], container, "/keys/id_rsa.pub",
-                            uid=0, gid=0, mode=0o644)
+        string_to_container(data["private"], container, "/keys/id_rsa", uid=0, gid=0, mode=0o600)
+        string_to_container(data["public"], container, "/keys/id_rsa.pub", uid=0, gid=0, mode=0o644)
         if data["authorized_keys"]:
-            string_to_container(data["authorized_keys"], container,
-                                "/keys/authorized_keys",
-                                uid=0, gid=0, mode=0o644)
+            string_to_container(data["authorized_keys"], container, "/keys/authorized_keys", uid=0, gid=0, mode=0o644)
         if data["known_hosts"]:
-            string_to_container(data["known_hosts"], container,
-                                "/keys/known_hosts",
-                                uid=0, gid=0, mode=0o644)
-        string_to_container(f"{name}\n", container, "/keys/name",
-                            uid=0, gid=0, mode=0o644)
+            string_to_container(data["known_hosts"], container, "/keys/known_hosts", uid=0, gid=0, mode=0o644)
+        string_to_container(f"{name}\n", container, "/keys/name", uid=0, gid=0, mode=0o644)
     finally:
         container.remove()
 
 
 def _get_pubkeys(vault, prefix, nms):
-    return {
-        nm: vault.secrets.kv.v1.read_secret(f"{prefix}/{nm}")["data"]["public"]
-        for nm in nms
-    }
+    return {nm: vault.secrets.kv.v1.read_secret(f"{prefix}/{nm}")["data"]["public"] for nm in nms}
 
 
 def _create_keypair():
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048
-    )
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     private = key.private_bytes(
-        crypto_serialization.Encoding.PEM,
-        crypto_serialization.PrivateFormat.PKCS8,
-        crypto_serialization.NoEncryption()
+        crypto_serialization.Encoding.PEM, crypto_serialization.PrivateFormat.PKCS8, crypto_serialization.NoEncryption()
     ).decode("UTF-8")
 
-    public = key.public_key().public_bytes(
-        crypto_serialization.Encoding.OpenSSH,
-        crypto_serialization.PublicFormat.OpenSSH
-    ).decode("UTF-8")
+    public = (
+        key.public_key()
+        .public_bytes(crypto_serialization.Encoding.OpenSSH, crypto_serialization.PublicFormat.OpenSSH)
+        .decode("UTF-8")
+    )
 
     return {"public": public, "private": private}
 

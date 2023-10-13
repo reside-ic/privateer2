@@ -13,8 +13,11 @@ Options:
 
 import docopt
 
-from privateer2.keys import configure, keygen
+import privateer2.__about__ as about
 from privateer2.backup import backup
+from privateer2.config import read_config
+from privateer2.keys import configure, keygen
+
 
 def main(argv=None):
     opts = docopt.docopt(__doc__, argv)
@@ -30,4 +33,4 @@ def main(argv=None):
         server = opts["--server"]
         include = opts["--include"]
         exclude = opts["--exclude"]
-        backup(cfg, sever, include, exclude)
+        backup(cfg, server, include, exclude)
