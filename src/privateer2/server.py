@@ -15,7 +15,7 @@ def serve(cfg, name, *, dry_run=False):
                "-v", f"{machine.data_volume}:/privateer",
                "-p", f"{machine.port}:22",
                image]
-        print("Command to manually launch server")
+        print("Command to manually launch server:")
         print()
         print(f"  {' '.join(cmd)}")
         print()

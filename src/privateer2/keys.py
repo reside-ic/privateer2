@@ -41,10 +41,15 @@ def configure(cfg, name):
         string_to_volume(
             data["known_hosts"], vol, "known_hosts", uid=0, gid=0, mode=0o600
         )
+    if data["config"]:
+        print("Adding ssh config")
+        string_to_volume(
+            data["config"], vol, "config", uid=0, gid=0, mode=0o600
+        )
     string_to_volume(name, vol, "name", uid=0, gid=0)
 
 
-def check(cfg, name):
+def check(cfg, name, *, quiet=False):
     machine = _machine_config(cfg, name)
     vol = machine.key_volume
     try:
@@ -56,7 +61,8 @@ def check(cfg, name):
     if found != name:
         msg = f"Configuration is for '{found}', not '{name}'"
         raise Exception(msg)
-    print(f"Volume '{vol}' looks configured as '{name}'")
+    if not quiet:
+        print(f"Volume '{vol}' looks configured as '{name}'")
     return machine
 
 
@@ -103,9 +109,15 @@ def _keys_data(cfg, name):
     if name in cfg.list_clients():
         keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_servers())
         known_hosts = []
+        config = []
         for s in cfg.servers:
             known_hosts.append(f"[{s.hostname}]:{s.port} {keys[s.name]}\n")
+            config.append(f"Host {s.name}\n")
+            config.append( "  User root\n")
+            config.append(f"  Port {s.port}\n")
+            config.append(f"  HostName {s.hostname}\n")
         ret["known_hosts"] = "".join(known_hosts)
+        ret["config"] = "".join(config)
     return ret
 
 
