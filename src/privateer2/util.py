@@ -1,3 +1,5 @@
+import random
+import string
 import os
 import os.path
 import tarfile
@@ -9,7 +11,7 @@ import docker
 
 
 def string_to_volume(text, volume, path, **kwargs):
-    _ensure_image("alpine")
+    ensure_image("alpine")
     dest = Path("/dest")
     mounts = [docker.types.Mount(str(dest), volume, type="volume")]
     cl = docker.from_env()
@@ -21,7 +23,7 @@ def string_to_volume(text, volume, path, **kwargs):
 
 
 def string_from_volume(volume, path):
-    _ensure_image("alpine")
+    ensure_image("alpine")
     src = Path("/src")
     mounts = [docker.types.Mount(str(src), volume, type="volume")]
     cl = docker.from_env()
@@ -117,10 +119,14 @@ def bytes_from_container(container, path):
         os.remove(tmp)
 
 
-def _ensure_image(name):
+def ensure_image(name):
     cl = docker.from_env()
     try:
         cl.images.get(name)
     except docker.errors.ImageNotFound:
         print(f"Pulling {name}")
         cl.images.pull(name)
+
+
+def rand_str(n=8):
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=n))

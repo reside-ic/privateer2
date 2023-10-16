@@ -12,21 +12,22 @@ def keygen(cfg, name):
     # TODO: The docs are here:
     # https://hvac.readthedocs.io/en/stable/usage/secrets_engines/kv_v1.html
     # They do not indicate if this will error if the write fails though.
-    print(f"Writing key for {name}")
+    print(f"Writing keypair for {name}")
     _r = vault.secrets.kv.v1.create_or_update_secret(path, secret=data)
 
 
 def configure(cfg, name):
     cl = docker.from_env()
     data = _keys_data(cfg, name)
-
     vol = _key_volume_name(cfg, name)
     cl.volumes.create(vol)
+    print(f"Copying keypair for '{name}' to volume '{vol}'")
     string_to_volume(
         data["public"], vol, "id_rsa.pub", uid=0, gid=0, mode=0o644
     )
     string_to_volume(data["private"], vol, "id_rsa", uid=0, gid=0, mode=0o600)
     if data["authorized_keys"]:
+        print("Authorising public keys")
         string_to_volume(
             data["authorized_keys"],
             vol,
@@ -36,6 +37,7 @@ def configure(cfg, name):
             mode=0o600,
         )
     if data["known_hosts"]:
+        print("Recognising servers")
         string_to_volume(
             data["known_hosts"], vol, "known_hosts", uid=0, gid=0, mode=0o600
         )
@@ -44,15 +46,17 @@ def configure(cfg, name):
 
 def check(cfg, name):
     machine = _machine_config(cfg, name)
+    vol = machine.key_volume
     try:
-        docker.from_env().volumes.get(machine.key_volume)
+        docker.from_env().volumes.get(vol)
     except docker.errors.VolumeNotFound:
         msg = f"'{name}' looks unconfigured"
         raise Exception(msg) from None
-    found = string_from_volume(machine.key_volume, "name")
+    found = string_from_volume(vol, "name")
     if found != name:
         msg = f"Configuration is for '{found}', not '{name}'"
         raise Exception(msg)
+    print(f"Volume '{vol}' looks configured as '{name}'")
     return machine
 
 

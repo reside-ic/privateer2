@@ -1,8 +1,9 @@
 """Usage:
   privateer2 --version
-  privateer2 [-f=PATH] keygen <name>...
+  privateer2 [-f=PATH] keygen <name>
   privateer2 [-f=PATH] configure <name>
-  privateer2 backup [--server=NAME --include=NAME... --exclude=NAME...]
+  privateer2 [-f=PATH] check <name>
+  privateer2 [-f=PATH] server [--dry-run] <name>
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -14,9 +15,9 @@ Options:
 import docopt
 
 import privateer2.__about__ as about
-from privateer2.backup import backup
+
 from privateer2.config import read_config
-from privateer2.keys import configure, keygen
+from privateer2.keys import check, configure, keygen
 
 
 def main(argv=None):
@@ -26,11 +27,8 @@ def main(argv=None):
     path_config = opts["-f"]
     cfg = read_config(path_config)
     if opts["keygen"]:
-        keygen(cfg, opts["<name>..."])
+        keygen(cfg, opts["<name>"])
     elif opts["configure"]:
         configure(cfg, opts["<name>"])
-    elif opts["backup"]:
-        server = opts["--server"]
-        include = opts["--include"]
-        exclude = opts["--exclude"]
-        backup(cfg, server, include, exclude)
+    elif opts["check"]:
+        check(cfg, opts["<name>"])

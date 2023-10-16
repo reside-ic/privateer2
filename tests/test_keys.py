@@ -1,17 +1,10 @@
-import random
-import string
-
 import pytest
 import vault_dev
 
 import docker
 from privateer2.config import read_config
 from privateer2.keys import _keys_data, check, configure, keygen
-from privateer2.util import string_from_volume
-
-
-def rand_str(n=8):
-    return "".join(random.choices(string.ascii_lowercase + string.digits, k=n))
+from privateer2.util import rand_str, string_from_volume
 
 
 def test_can_create_keys():
