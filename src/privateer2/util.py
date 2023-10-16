@@ -202,3 +202,24 @@ def take_ownership(filename, directory, *, command_only=False):
     else:
         cl.containers.run("alpine", mounts=mounts, working_dir="/src",
                           command=command)
+
+
+def run_docker_command(name, image, **kwargs):
+    ensure_image(image)
+    client = docker.from_env()
+    container = client.containers.run(image, **kwargs, detach=True)
+    print(f"{name} command started. To stream progress, run:")
+    print(f"  docker logs -f {container.name}")
+    result = container.wait()
+    if result["StatusCode"] == 0:
+        print(f"{name} completed successfully! Container logs:")
+        log_tail(container, 10)
+        container.remove()
+        # TODO: also copy over some metadata at this point, via
+        # ssh; probably best to write tiny utility in the client
+        # container that will do this for us.
+    else:
+        print("An error occured! Container logs:")
+        log_tail(container, 20)
+        msg = f"{name} failed; see {container.name} logs for details"
+        raise Exception(msg)

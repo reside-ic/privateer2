@@ -27,9 +27,9 @@ import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
-from privateer2.restore import export, restore
+from privateer2.restore import restore
 from privateer2.server import serve
-
+from privateer2.tar import export_tar
 
 def pull(cfg):
     img = [f"mrcide/privateer-client:{cfg.tag}",
@@ -62,8 +62,8 @@ def main(argv=None):
                 server=opts["--server"], source=opts["--source"],
                 dry_run=dry_run)
     elif opts["export"]:
-        export(cfg, opts["<name>"], opts["<volume>"],
-               to=opts["--to"], source=opts["--source"],
-               dry_run=dry_run)
+        export_tar(cfg, opts["<name>"], opts["<volume>"],
+                   to=opts["--to"], source=opts["--source"],
+                   dry_run=dry_run)
     elif opts["pull"]:
         pull(cfg)

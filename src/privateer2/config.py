@@ -3,6 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
+from privateer2.util import match_value
 from privateer2.vault import vault_client
 
 
@@ -51,3 +52,14 @@ class Config(BaseModel):
 
     def list_clients(self):
         return [x.name for x in self.clients]
+
+
+def find_source(cfg, volume, source):
+    for v in cfg.volumes:
+        if v.name == volume and v.local:
+            if source is not None:
+                msg = f"{volume} is a local source, so 'source' must be empty"
+                raise Exception(msg)
+            return "local"
+    pos = [cl.name for cl in cfg.clients if volume in cl.backup]
+    return match_value(source, pos, "source")

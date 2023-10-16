@@ -1,7 +1,7 @@
 import docker
 
 from privateer2.keys import check
-from privateer2.util import ensure_image, log_tail, match_value, mounts_str
+from privateer2.util import ensure_image, log_tail, match_value, mounts_str, run_docker_command
 
 
 def backup(cfg, name, volume, *, server=None, dry_run=False):
@@ -10,7 +10,6 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
     volume = match_value(volume, machine.backup, "volume")
     machine = check(cfg, name, quiet=True)
     image = f"mrcide/privateer-client:{cfg.tag}"
-    ensure_image(image)
     container = "privateer_client"
     src_mount = f"/privateer/{volume}"
     mounts = [
@@ -35,21 +34,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         print("in /run/config/id_rsa")
     else:
         print(f"Backing up '{volume}' to '{server}'")
-        client = docker.from_env()
-        container = client.containers.run(image, command=command, detach=True,
-                                          mounts=mounts)
-        print("Backup command started. To stream progress, run:")
-        print(f"  docker logs -f {container.name}")
-        result = container.wait()
-        if result["StatusCode"] == 0:
-            print("Backup completed successfully! Container logs:")
-            log_tail(container, 10)
-            container.remove()
-            # TODO: also copy over some metadata at this point, via
-            # ssh; probably best to write tiny utility in the client
-            # container that will do this for us.
-        else:
-            print("An error occured! Container logs:")
-            log_tail(container, 20)
-            msg = f"backup failed; see {container.name} logs for details"
-            raise Exception(msg)
+        run_docker_command("Backup", image, command=command, mounts=mounts)
+        # TODO: also copy over some metadata at this point, via
+        # ssh; probably best to write tiny utility in the client
+        # container that will do this for us.
