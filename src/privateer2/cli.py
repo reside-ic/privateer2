@@ -8,6 +8,7 @@
   privateer2 [-f=PATH] backup [--dry-run] <name> <volume>
   privateer2 [-f=PATH] restore [--dry-run] <name> <volume> [--server=NAME] [--source=NAME]
   privateer2 [-f=PATH] export [--dry-run] <name> <volume> [--to=PATH] [--source=NAME]
+  privateer2 import [--dry-run] <tarfile> <volume>
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -17,6 +18,10 @@ Commentary:
   In all the above '<name>' refers to the name of the client or server
   being acted on; the machine we are generating keys for, configuring,
   checking, serving, backing up from or restoring to.
+
+  Note that the 'import' subcommand is quite different and does not
+  interact with the configuration. If 'volume' exists already, it will
+  fail, so this is fairly safe.
 """
 
 import docker
@@ -29,7 +34,7 @@ from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
 from privateer2.restore import restore
 from privateer2.server import serve
-from privateer2.tar import export_tar
+from privateer2.tar import export_tar, import_tar
 
 def pull(cfg):
     img = [f"mrcide/privateer-client:{cfg.tag}",
@@ -44,9 +49,13 @@ def main(argv=None):
     opts = docopt.docopt(__doc__, argv)
     if opts["--version"]:
         return about.__version__
+
+    dry_run = opts["--dry-run"]
+    if opts["import"]:
+        return import_tar(opts["<volume>"], opts["<tarfile>"], dry_run=dry_run)
+
     path_config = opts["-f"]
     cfg = read_config(path_config)
-    dry_run = opts["--dry-run"]
     if opts["keygen"]:
         keygen(cfg, opts["<name>"])
     elif opts["configure"]:
@@ -65,5 +74,8 @@ def main(argv=None):
         export_tar(cfg, opts["<name>"], opts["<volume>"],
                    to=opts["--to"], source=opts["--source"],
                    dry_run=dry_run)
+    elif opts["import"]:
+        import_tar(opts["<name>"], opts["<volume>"],
+                   opts["<tarfile>"], dry_run=dry_run)
     elif opts["pull"]:
         pull(cfg)
