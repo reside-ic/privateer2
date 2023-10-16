@@ -3,7 +3,7 @@
   privateer2 [-f=PATH] keygen <name>
   privateer2 [-f=PATH] configure <name>
   privateer2 [-f=PATH] check <name>
-  privateer2 [-f=PATH] server [--dry-run] <name>
+  privateer2 [-f=PATH] serve [--dry-run] <name>
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -18,6 +18,7 @@ import privateer2.__about__ as about
 
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
+from privateer2.server import serve
 
 
 def main(argv=None):
@@ -26,9 +27,12 @@ def main(argv=None):
         return about.__version__
     path_config = opts["-f"]
     cfg = read_config(path_config)
+    dry_run = opts["--dry-run"]
     if opts["keygen"]:
         keygen(cfg, opts["<name>"])
     elif opts["configure"]:
         configure(cfg, opts["<name>"])
     elif opts["check"]:
         check(cfg, opts["<name>"])
+    elif opts["serve"]:
+        serve(cfg, opts["<name>"], dry_run=dry_run)
