@@ -3,6 +3,7 @@
   privateer2 [-f=PATH] keygen <name>
   privateer2 [-f=PATH] configure <name>
   privateer2 [-f=PATH] check <name>
+  privateer2 [-f=PATH] pull
   privateer2 [-f=PATH] serve [--dry-run] <name>
 
 Options:
@@ -12,6 +13,7 @@ Options:
   --exclude  Volumes to exclude from the backup
 """
 
+import docker
 import docopt
 
 import privateer2.__about__ as about
@@ -36,3 +38,10 @@ def main(argv=None):
         check(cfg, opts["<name>"])
     elif opts["serve"]:
         serve(cfg, opts["<name>"], dry_run=dry_run)
+    elif opts["pull"]:
+        img = [f"mrcide/privateer-client:{cfg.tag}",
+               f"mrcide/privateer-server:{cfg.tag}"]
+        cl = docker.from_env()
+        for nm in img:
+            print(f"pulling '{nm}'")
+            cl.images.pull(nm)
