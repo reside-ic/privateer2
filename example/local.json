@@ -12,13 +12,17 @@
         {
             "name": "bob",
             "backup": ["data"],
-            "restore": ["data"],
+            "restore": ["data", "other"],
             "key_volume": "privateer_keys_bob"
         }
     ],
     "volumes": [
         {
             "name": "data"
+        },
+        {
+            "name": "other",
+            "local": true
         }
     ],
     "vault": {

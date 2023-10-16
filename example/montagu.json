@@ -1,0 +1,47 @@
+{
+    "servers": [
+        {
+            "name": "annex",
+            "hostname": "annex.montagu.dide.ic.ac.uk",
+            "port": 10022
+        },
+        {
+            "name": "annex2",
+            "hostname": "annex2.montagu.dide.ic.ac.uk",
+            "port": 10022
+        }
+    ],
+    "clients": [
+        {
+            "name": "production",
+            "backup": ["montagu_orderly_volume"],
+            "restore": ["montagu_orderly_volume", "barman_recover"]
+        },
+        {
+            "name": "production2",
+            "backup": ["montagu_orderly_volume"],
+            "restore": ["montagu_orderly_volume", "barman_recover"]
+        },
+        {
+            "name": "science",
+            "restore": ["montagu_orderly_volume", "barman_recover"]
+        },
+        {
+            "name": "uat",
+            "restore": ["montagu_orderly_volume", "barman_recover"]
+        }
+    ],
+    "volumes": [
+        {
+            "name": "montagu_orderly_volume"
+        },
+        {
+            "name": "barman_recover",
+            "local": true
+        }
+    ],
+    "vault": {
+        "url": "http://vault.dide.ic.ac.uk:8200",
+        "prefix": "/secret/vimc/privateer"
+    }
+}
