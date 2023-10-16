@@ -6,7 +6,7 @@
   privateer2 [-f=PATH] check <name>
   privateer2 [-f=PATH] serve [--dry-run] <name>
   privateer2 [-f=PATH] backup [--dry-run] <name> <volume>
-  privateer2 [-f=PATH] restore [--dry-run] <name> <volume> --from=
+  privateer2 [-f=PATH] restore [--dry-run] <name> <volume> --from=NAME
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -55,8 +55,8 @@ def main(argv=None):
     elif opts["serve"]:
         serve(cfg, opts["<name>"], dry_run=dry_run)
     elif opts["backup"]:
-        backup(cfg, opts["<name>"], dry_run=dry_run)
+        backup(cfg, opts["<name>"], opts["<volume>"], dry_run=dry_run)
     elif opts["restore"]:
-        restore(cfg, opts["<name>"], dry_run=dry_run)
+        restore(cfg, opts["<name>"], opts["<volume>"], dry_run=dry_run)
     elif opts["pull"]:
         pull(cfg)

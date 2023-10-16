@@ -155,3 +155,30 @@ def log_tail(container, n):
     if len(logs) > n:
         print(f"(ommitting {len(logs) - n} lines of logs)")
     print("\n".join(logs[-n:]))
+
+
+def mounts_str(mounts):
+    ret = []
+    for m in mounts:
+        ret += mount_str(m)
+    return ret
+
+
+def mount_str(mount):
+    ret = f"{mount['Source']}:{mount['Target']}"
+    if mount["ReadOnly"]:
+        ret += ":ro"
+    return ["-v", ret]
+
+
+def match_value(given, valid, name):
+    if given is None:
+        if len(valid) == 1:
+            return valid[0]
+        msg = f"Please provide a value for {name}"
+        raise Exception(msg)
+    if given not in valid:
+        valid_str = ", ".join([f"'{x}'" for x in valid])
+        msg = f"Invalid {name} '{given}': valid options: {valid_str}"
+        raise Exception(msg)
+    return given

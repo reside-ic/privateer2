@@ -1,32 +1,28 @@
 import docker
 
 from privateer2.keys import check
-from privateer2.util import ensure_image, log_tail
+from privateer2.util import ensure_image, log_tail, match_value, mounts_str
 
 
-def backup(cfg, name, *, dry_run=False):
+def backup(cfg, name, volume, *, server=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
-    if len(cfg.servers) != 1:
-        msg = "More than one server configured, some care needed"
-        raise Exception(msg)
-    server = cfg.servers[0].name
-    for volume in machine.backup:
-        backup_volume(cfg, name, volume, server, dry_run=dry_run)
-
-
-def backup_volume(cfg, name, volume, server, *, dry_run=False):
+    server = match_value(server, cfg.list_servers(), "server")
+    volume = match_value(volume, machine.backup, "volume")
     machine = check(cfg, name, quiet=True)
     image = f"mrcide/privateer-client:{cfg.tag}"
     ensure_image(image)
     container = "privateer_client"
     src_mount = f"/privateer/{volume}"
+    mounts = [
+        docker.types.Mount("/run/privateer", machine.key_volume,
+                           type="volume", read_only=True),
+        docker.types.Mount(src_mount, volume,
+                           type="volume", read_only=True)
+    ]
     command = ["rsync", "-av", "--delete", src_mount,
                f"{server}:/privateer/{name}"]
     if dry_run:
-        cmd = ["docker", "run", "--rm",
-               "-v", f"{machine.key_volume}:/run/privateer:ro",
-               "-v", f"{volume}:{src_mount}:ro",
-               image] + command
+        cmd = ["docker", "run", "--rm", *mounts_str(mounts), image] + command
         print("Command to manually run backup")
         print()
         print(f"  {' '.join(cmd)}")
@@ -39,12 +35,6 @@ def backup_volume(cfg, name, volume, server, *, dry_run=False):
         print("in /run/config/id_rsa")
     else:
         print(f"Backing up '{volume}' to '{server}'")
-        mounts = [
-            docker.types.Mount("/run/privateer", machine.key_volume,
-                               type="volume", read_only=True),
-            docker.types.Mount(src_mount, volume,
-                               type="volume", read_only=True)
-        ]
         client = docker.from_env()
         container = client.containers.run(image, command=command, detach=True,
                                           mounts=mounts)
