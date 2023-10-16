@@ -139,3 +139,10 @@ def container_exists(name):
 
 def rand_str(n=8):
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=n))
+
+
+def log_tail(container, n):
+    logs = container.logs().decode("utf-8").strip().split("\n")
+    if len(logs) > n:
+        print(f"(ommitting {len(logs) - n} lines of logs)")
+    print("\n".join(logs[-n:]))
