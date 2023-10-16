@@ -14,6 +14,7 @@ RUN apt-get update && \
 COPY sshd_config /etc/ssh/sshd_config
 
 VOLUME /run/privateer
+VOLUME /privateer
 EXPOSE 22
 
 ENTRYPOINT ["/usr/sbin/sshd", "-D", "-E", "/dev/stderr"]
