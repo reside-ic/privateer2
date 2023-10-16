@@ -24,9 +24,9 @@ Commentary:
   fail, so this is fairly safe.
 """
 
-import docker
 import docopt
 
+import docker
 import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config

@@ -1,7 +1,7 @@
-import docker
 import pytest
 import vault_dev
 
+import docker
 from privateer2.config import read_config
 from privateer2.keys import _keys_data, check, configure, keygen
 from privateer2.util import rand_str, string_from_volume

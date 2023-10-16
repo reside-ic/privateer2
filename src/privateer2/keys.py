@@ -1,7 +1,7 @@
-import docker
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+import docker
 from privateer2.util import string_from_volume, string_to_volume
 
 

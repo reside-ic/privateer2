@@ -1,5 +1,4 @@
 import docker
-
 from privateer2.keys import check
 from privateer2.util import container_exists, ensure_image, mounts_str
 

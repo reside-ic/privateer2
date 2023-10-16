@@ -1,7 +1,6 @@
 import os
 
 import docker
-
 from privateer2.config import find_source
 from privateer2.keys import check
 from privateer2.util import (

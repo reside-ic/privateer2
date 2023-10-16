@@ -12,8 +12,6 @@ def read_config(path):
         return Config(**json.loads(f.read().strip()))
 
 
-# TODO: forbid name of 'local' for either server of client, if that is
-# the name that we stick with.
 class Server(BaseModel):
     name: str
     hostname: str
@@ -50,6 +48,9 @@ class Config(BaseModel):
     vault: Vault
     tag: str = "docker"
 
+    def model_post_init(self, __context):
+        check_config(self)
+
     def list_servers(self):
         return [x.name for x in self.servers]
 
@@ -66,3 +67,38 @@ def find_source(cfg, volume, source):
             return "local"
     pos = [cl.name for cl in cfg.clients if volume in cl.backup]
     return match_value(source, pos, "source")
+
+
+def check_config(cfg):
+    servers = cfg.list_servers()
+    clients = cfg.list_clients()
+    _check_not_duplicated(servers, "servers")
+    _check_not_duplicated(clients, "clients")
+    err = set(cfg.list_servers()).intersection(set(cfg.list_clients()))
+    if err:
+        err_str = ", ".join(f"'{nm}'" for nm in err)
+        msg = f"Invalid machine listed as both a client and a server: {err_str}"
+        raise Exception(msg)
+    if "local" in cfg.list_servers() or "local" in cfg.list_clients():
+        msg = "Machines cannot be called 'local'"
+        raise Exception(msg)
+    vols_local = [x.name for x in cfg.volumes if x.local]
+    vols_all = [x.name for x in cfg.volumes]
+    for cl in cfg.clients:
+        for v in cl.restore:
+            if v not in vols_all:
+                msg = f"Client '{cl.name}' restores from unknown volume '{v}'"
+                raise Exception(msg)
+        for v in cl.backup:
+            if v not in vols_all:
+                msg = f"Client '{cl.name}' backs up unknown volume '{v}'"
+                raise Exception(msg)
+            if v in vols_local:
+                msg = f"Client '{cl.name}' backs up local volume '{v}'"
+                raise Exception(msg)
+
+
+def _check_not_duplicated(els, name):
+    if len(els) > len(set(els)):
+        msg = f"Duplicated elements in {name}"
+        raise Exception(msg)
