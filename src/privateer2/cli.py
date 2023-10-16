@@ -6,6 +6,7 @@
   privateer2 [-f=PATH] pull
   privateer2 [-f=PATH] serve [--dry-run] <name>
   privateer2 [-f=PATH] backup [--dry-run] <name>
+  privateer2 [-f=PATH] restore [--dry-run] <name>
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -22,6 +23,7 @@ import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
+from privateer2.restore import restore
 from privateer2.server import serve
 
 
@@ -42,6 +44,8 @@ def main(argv=None):
         serve(cfg, opts["<name>"], dry_run=dry_run)
     elif opts["backup"]:
         backup(cfg, opts["<name>"], dry_run=dry_run)
+    elif opts["restore"]:
+        restore(cfg, opts["<name>"], dry_run=dry_run)
     elif opts["pull"]:
         img = [f"mrcide/privateer-client:{cfg.tag}",
                f"mrcide/privateer-server:{cfg.tag}"]

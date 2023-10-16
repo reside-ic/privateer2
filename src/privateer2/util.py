@@ -137,6 +137,15 @@ def container_exists(name):
         return False
 
 
+def volume_exists(name):
+    cl = docker.from_env()
+    try:
+        cl.volumes.get(name)
+        return True
+    except docker.errors.NotFound:
+        return False
+
+
 def rand_str(n=8):
     return "".join(random.choices(string.ascii_lowercase + string.digits, k=n))
 
