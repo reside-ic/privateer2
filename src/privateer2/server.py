@@ -1,4 +1,5 @@
 import docker
+import os
 
 from privateer2.keys import check
 from privateer2.util import container_exists, ensure_image, mounts_str
@@ -8,10 +9,11 @@ def serve(cfg, name, *, dry_run=False):
     machine = check(cfg, name)
     image = f"mrcide/privateer-server:{cfg.tag}"
     ensure_image(image)
+
     mounts = [
         docker.types.Mount("/run/privateer", machine.key_volume,
                            type="volume", read_only=True),
-        docker.types.Mount("/privateer", machine.data_volume, type="volume"),
+        docker.types.Mount("/privateer", machine.data_volume, type="volume")
     ]
     for v in cfg.volumes:
         if v.local:

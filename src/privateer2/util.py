@@ -1,3 +1,4 @@
+import datetime
 import random
 import string
 import os
@@ -182,3 +183,22 @@ def match_value(given, valid, name):
         msg = f"Invalid {name} '{given}': valid options: {valid_str}"
         raise Exception(msg)
     return given
+
+
+def isotimestamp():
+    return datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+
+def take_ownership(filename, directory, *, command_only=False):
+    uid = os.geteuid()
+    gid = os.getegid()
+    cl = docker.from_env()
+    ensure_image("alpine")
+    mounts = [docker.types.Mount("/src", directory, type="bind")]
+    command = ["chown", f"{uid}.{gid}", filename]
+    if command_only:
+        return ["docker", "run", *mounts_str(mounts), "-w", "/src",
+                "alpine"] + command
+    else:
+        cl.containers.run("alpine", mounts=mounts, working_dir="/src",
+                          command=command)

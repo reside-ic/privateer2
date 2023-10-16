@@ -6,11 +6,12 @@
   privateer2 [-f=PATH] check <name>
   privateer2 [-f=PATH] serve [--dry-run] <name>
   privateer2 [-f=PATH] backup [--dry-run] <name> <volume>
-  privateer2 [-f=PATH] restore [--dry-run] <name> <volume> --from=NAME
+  privateer2 [-f=PATH] restore [--dry-run] <name> <volume> [--server=NAME] [--source=NAME]
+  privateer2 [-f=PATH] export [--dry-run] <name> <volume> [--to=PATH] [--source=NAME]
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
-  --server   The name of the server to back up to, if more than one configured
+  --dry-run  Do nothing, but print docker commands
 
 Commentary:
   In all the above '<name>' refers to the name of the client or server
@@ -26,7 +27,7 @@ import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
-from privateer2.restore import restore
+from privateer2.restore import export, restore
 from privateer2.server import serve
 
 
@@ -57,6 +58,12 @@ def main(argv=None):
     elif opts["backup"]:
         backup(cfg, opts["<name>"], opts["<volume>"], dry_run=dry_run)
     elif opts["restore"]:
-        restore(cfg, opts["<name>"], opts["<volume>"], dry_run=dry_run)
+        restore(cfg, opts["<name>"], opts["<volume>"],
+                server=opts["--server"], source=opts["--source"],
+                dry_run=dry_run)
+    elif opts["export"]:
+        export(cfg, opts["<name>"], opts["<volume>"],
+               to=opts["--to"], source=opts["--source"],
+               dry_run=dry_run)
     elif opts["pull"]:
         pull(cfg)
