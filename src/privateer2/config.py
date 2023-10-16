@@ -12,6 +12,8 @@ def read_config(path):
         return Config(**json.loads(f.read().strip()))
 
 
+# TODO: forbid name of 'local' for either server of client, if that is
+# the name that we stick with.
 class Server(BaseModel):
     name: str
     hostname: str
@@ -30,6 +32,7 @@ class Client(BaseModel):
 
 class Volume(BaseModel):
     name: str
+    local: bool = False
 
 
 class Vault(BaseModel):

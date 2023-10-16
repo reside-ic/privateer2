@@ -1,14 +1,14 @@
 """Usage:
   privateer2 --version
-  privateer2 [-f=PATH] pull
-  privateer2 [-f=PATH] keygen <name>
-  privateer2 [-f=PATH] configure <name>
-  privateer2 [-f=PATH] check <name>
-  privateer2 [-f=PATH] serve [--dry-run] <name>
-  privateer2 [-f=PATH] backup [--dry-run] <name> <volume>
-  privateer2 [-f=PATH] restore [--dry-run] <name> <volume> [--server=NAME] [--source=NAME]
-  privateer2 [-f=PATH] export [--dry-run] <name> <volume> [--to=PATH] [--source=NAME]
-  privateer2 import [--dry-run] <tarfile> <volume>
+  privateer2 [options] pull
+  privateer2 [options] keygen <name>
+  privateer2 [options] configure <name>
+  privateer2 [options] check <name>
+  privateer2 [options] serve  <name>
+  privateer2 [options] backup  <name> <volume>
+  privateer2 [options] restore  <name> <volume> [--server=NAME] [--source=NAME]
+  privateer2 [options] export  <name> <volume> [--to=PATH] [--source=NAME]
+  privateer2 [--dry-run] import <tarfile> <volume>
 
 Options:
   -f=PATH    The path to the privateer configuration [default: privateer.json].
@@ -28,7 +28,6 @@ import docker
 import docopt
 
 import privateer2.__about__ as about
-
 from privateer2.backup import backup
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen
@@ -36,9 +35,12 @@ from privateer2.restore import restore
 from privateer2.server import serve
 from privateer2.tar import export_tar, import_tar
 
+
 def pull(cfg):
-    img = [f"mrcide/privateer-client:{cfg.tag}",
-           f"mrcide/privateer-server:{cfg.tag}"]
+    img = [
+        f"mrcide/privateer-client:{cfg.tag}",
+        f"mrcide/privateer-server:{cfg.tag}",
+    ]
     cl = docker.from_env()
     for nm in img:
         print(f"pulling '{nm}'")
@@ -67,15 +69,26 @@ def main(argv=None):
     elif opts["backup"]:
         backup(cfg, opts["<name>"], opts["<volume>"], dry_run=dry_run)
     elif opts["restore"]:
-        restore(cfg, opts["<name>"], opts["<volume>"],
-                server=opts["--server"], source=opts["--source"],
-                dry_run=dry_run)
+        restore(
+            cfg,
+            opts["<name>"],
+            opts["<volume>"],
+            server=opts["--server"],
+            source=opts["--source"],
+            dry_run=dry_run,
+        )
     elif opts["export"]:
-        export_tar(cfg, opts["<name>"], opts["<volume>"],
-                   to=opts["--to"], source=opts["--source"],
-                   dry_run=dry_run)
+        export_tar(
+            cfg,
+            opts["<name>"],
+            opts["<volume>"],
+            to=opts["--to"],
+            source=opts["--source"],
+            dry_run=dry_run,
+        )
     elif opts["import"]:
-        import_tar(opts["<name>"], opts["<volume>"],
-                   opts["<tarfile>"], dry_run=dry_run)
+        import_tar(
+            opts["<name>"], opts["<volume>"], opts["<tarfile>"], dry_run=dry_run
+        )
     elif opts["pull"]:
         pull(cfg)

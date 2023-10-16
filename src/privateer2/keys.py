@@ -1,7 +1,7 @@
+import docker
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import docker
 from privateer2.util import string_from_volume, string_to_volume
 
 
@@ -113,7 +113,7 @@ def _keys_data(cfg, name):
         for s in cfg.servers:
             known_hosts.append(f"[{s.hostname}]:{s.port} {keys[s.name]}\n")
             config.append(f"Host {s.name}\n")
-            config.append( "  User root\n")
+            config.append("  User root\n")
             config.append(f"  Port {s.port}\n")
             config.append(f"  HostName {s.hostname}\n")
         ret["known_hosts"] = "".join(known_hosts)

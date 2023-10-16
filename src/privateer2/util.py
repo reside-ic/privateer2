@@ -1,8 +1,8 @@
 import datetime
-import random
-import string
 import os
 import os.path
+import random
+import string
 import tarfile
 import tempfile
 from contextlib import contextmanager
@@ -186,7 +186,8 @@ def match_value(given, valid, name):
 
 
 def isotimestamp():
-    return datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    return now.strftime("%Y%m%d-%H%M%S")
 
 
 def take_ownership(filename, directory, *, command_only=False):
@@ -197,11 +198,19 @@ def take_ownership(filename, directory, *, command_only=False):
     mounts = [docker.types.Mount("/src", directory, type="bind")]
     command = ["chown", f"{uid}.{gid}", filename]
     if command_only:
-        return ["docker", "run", *mounts_str(mounts), "-w", "/src",
-                "alpine"] + command
+        return [
+            "docker",
+            "run",
+            *mounts_str(mounts),
+            "-w",
+            "/src",
+            "alpine",
+            *command,
+        ]
     else:
-        cl.containers.run("alpine", mounts=mounts, working_dir="/src",
-                          command=command)
+        cl.containers.run(
+            "alpine", mounts=mounts, working_dir="/src", command=command
+        )
 
 
 def run_docker_command(name, image, **kwargs):
