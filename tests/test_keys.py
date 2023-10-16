@@ -89,6 +89,7 @@ def test_can_unpack_keys_for_client():
             "id_rsa",
             "id_rsa.pub",
             "name",
+            "config",
         }
         assert string_from_volume(vol, "name") == "bob"
         assert check(cfg, "bob").key_volume == vol

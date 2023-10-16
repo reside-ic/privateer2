@@ -102,6 +102,7 @@ def _keys_data(cfg, name):
         **response["data"],
         "authorized_keys": None,
         "known_hosts": None,
+        "config": None,
     }
     if name in cfg.list_servers():
         keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_clients())
