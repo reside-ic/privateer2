@@ -4,10 +4,10 @@
   privateer2 [options] keygen <name>
   privateer2 [options] configure <name>
   privateer2 [options] check <name>
-  privateer2 [options] serve  <name>
-  privateer2 [options] backup  <name> <volume>
-  privateer2 [options] restore  <name> <volume> [--server=NAME] [--source=NAME]
-  privateer2 [options] export  <name> <volume> [--to=PATH] [--source=NAME]
+  privateer2 [options] serve <name>
+  privateer2 [options] backup <name> <volume>
+  privateer2 [options] restore <name> <volume> [--server=NAME] [--source=NAME]
+  privateer2 [options] export <name> <volume> [--to=PATH] [--source=NAME]
   privateer2 [--dry-run] import <tarfile> <volume>
 
 Options:
