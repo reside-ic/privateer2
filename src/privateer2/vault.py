@@ -5,10 +5,8 @@ import hvac
 
 
 def vault_client(addr, token=None):
-    re_gh = re.compile("^ghp_[A-Za-z0-9]{36}$")
-    re.compile("^(hv)?s\\.{80}$")
     token = _get_vault_token(token)
-    if re_gh.match(token):
+    if _is_github_token(token):
         print("logging into vault using github")
         client = hvac.Client(addr)
         client.auth.github.login(token)
@@ -28,3 +26,8 @@ def _get_vault_token(token):
         if token_type in os.environ:
             return os.environ[token_type]
     return input("Enter token for vault: ").strip()
+
+
+def _is_github_token(token):
+    re_gh = re.compile("^ghp_[A-Za-z0-9]{36}$")
+    return re_gh.match(token)

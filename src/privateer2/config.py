@@ -49,7 +49,7 @@ class Config(BaseModel):
     tag: str = "docker"
 
     def model_post_init(self, __context):
-        check_config(self)
+        _check_config(self)
 
     def list_servers(self):
         return [x.name for x in self.servers]
@@ -58,18 +58,20 @@ class Config(BaseModel):
         return [x.name for x in self.clients]
 
 
+# this could be put elsewhere; we find the plausible sources (original
+# clients) that backed up a source to any server.
 def find_source(cfg, volume, source):
     for v in cfg.volumes:
         if v.name == volume and v.local:
             if source is not None:
-                msg = f"{volume} is a local source, so 'source' must be empty"
+                msg = f"'{volume}' is a local source, so 'source' must be empty"
                 raise Exception(msg)
             return "local"
     pos = [cl.name for cl in cfg.clients if volume in cl.backup]
     return match_value(source, pos, "source")
 
 
-def check_config(cfg):
+def _check_config(cfg):
     servers = cfg.list_servers()
     clients = cfg.list_clients()
     _check_not_duplicated(servers, "servers")

@@ -95,7 +95,8 @@ def transient_envvar(**kwargs):
 def _setdictvals(new, container):
     for k, v in new.items():
         if v is None:
-            del container[k]
+            if k in container:
+                del container[k]
         else:
             container[k] = v
     return container

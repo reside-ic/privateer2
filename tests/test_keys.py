@@ -96,6 +96,22 @@ def test_can_unpack_keys_for_client():
         client.volumes.get(vol).remove()
 
 
+def test_can_check_quietly(capsys):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = f"privateer_keys_{rand_str()}"
+        cfg.servers[0].key_volume = vol
+        keygen_all(cfg)
+        configure(cfg, "alice")
+        capsys.readouterr() # flush capture so far
+        assert check(cfg, "alice", quiet=True).key_volume == vol
+        assert capsys.readouterr().out == ""
+        assert check(cfg, "alice", quiet=False).key_volume == vol
+        out_loud = capsys.readouterr()
+        assert out_loud.out == f"Volume '{vol}' looks configured as 'alice'\n"
+
+
 def test_error_on_check_if_unconfigured():
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
