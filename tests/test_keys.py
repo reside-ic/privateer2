@@ -104,7 +104,7 @@ def test_can_check_quietly(capsys):
         cfg.servers[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "alice")
-        capsys.readouterr() # flush capture so far
+        capsys.readouterr()  # flush capture so far
         assert check(cfg, "alice", quiet=True).key_volume == vol
         assert capsys.readouterr().out == ""
         assert check(cfg, "alice", quiet=False).key_volume == vol

@@ -1,7 +1,7 @@
 import pytest
 import vault_dev
 
-from privateer2.config import find_source, read_config, _check_config
+from privateer2.config import _check_config, find_source, read_config
 
 
 def test_can_read_config():
@@ -34,7 +34,8 @@ def test_can_create_vault_client():
 def test_validation_is_run_on_load(tmp_path):
     path = tmp_path / "privateer.json"
     with path.open("w") as f:
-        f.write("""{
+        f.write(
+            """{
     "servers": [
         {
             "name": "alice",
@@ -58,7 +59,8 @@ def test_validation_is_run_on_load(tmp_path):
         "url": "http://localhost:8200",
         "prefix": "/secret/privateer"
     }
-}""")
+}"""
+        )
     msg = "Invalid machine listed as both a client and a server: 'alice'"
     with pytest.raises(Exception, match=msg):
         read_config(path)
@@ -76,7 +78,7 @@ def test_machines_cannot_be_duplicated():
 
 def test_machines_cannot_be_client_and_server():
     cfg = read_config("example/simple.json")
-    tmp =  cfg.clients[0].model_copy()
+    tmp = cfg.clients[0].model_copy()
     tmp.name = "alice"
     cfg.clients.append(tmp)
     msg = "Invalid machine listed as both a client and a server: 'alice'"

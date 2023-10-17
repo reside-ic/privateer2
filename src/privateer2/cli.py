@@ -28,6 +28,7 @@ Commentary:
 """
 
 import os
+
 import docopt
 
 import docker
@@ -107,9 +108,12 @@ def _parse_opts(opts):
     if opts["import"]:
         _dont_use("--as", opts, "import")
         _dont_use("--path", opts, "import")
-        return Call(import_tar, volume=opts["<volume>"],
-                    tarfile=opts["<tarfile>"],
-                    dry_run=dry_run)
+        return Call(
+            import_tar,
+            volume=opts["<volume>"],
+            tarfile=opts["<tarfile>"],
+            dry_run=dry_run,
+        )
 
     path_config = opts["--path"] or "privateer.json"
     root_config = os.path.dirname(path_config)

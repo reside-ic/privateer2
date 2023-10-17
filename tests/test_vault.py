@@ -19,6 +19,6 @@ def test_fallback_on_known_good_tokens():
 
 
 def test_prompt_if_no_tokens_found(monkeypatch):
-    monkeypatch.setattr('builtins.input', lambda _: "foo")
+    monkeypatch.setattr("builtins.input", lambda _: "foo")
     with transient_envvar(VAULT_TOKEN=None, VAULT_AUTH_GITHUB_TOKEN=None):
-        _get_vault_token(None) == "foo"
+        assert _get_vault_token(None) == "foo"

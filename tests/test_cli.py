@@ -1,10 +1,17 @@
+import shutil
 from unittest.mock import MagicMock
 
 import pytest
-import shutil
 
 import privateer2.cli
-from privateer2.cli import Call, _parse_argv, _parse_opts, _do_configure, _find_identity, _show_version
+from privateer2.cli import (
+    Call,
+    _do_configure,
+    _find_identity,
+    _parse_argv,
+    _parse_opts,
+    _show_version,
+)
 from privateer2.config import read_config
 from privateer2.util import transient_working_directory
 
@@ -12,6 +19,7 @@ from privateer2.util import transient_working_directory
 def test_can_create_and_run_call():
     def f(a, b=1):
         return [a, b]
+
     call = Call(f, a=1, b=2)
     assert call.run() == [1, 2]
 
@@ -44,7 +52,7 @@ def test_can_parse_keygen_one():
     assert res.target == privateer2.cli.keygen
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
-        "name": "alice"
+        "name": "alice",
     }
 
 
@@ -54,7 +62,7 @@ def test_can_parse_configure():
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
         "name": "alice",
-        "root": "example"
+        "root": "example",
     }
 
 
@@ -66,7 +74,7 @@ def test_can_parse_configure_without_explicit_path(tmp_path):
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
         "name": "alice",
-        "root": ""
+        "root": "",
     }
 
 
@@ -85,10 +93,10 @@ def test_can_parse_check(tmp_path):
     assert res.target == privateer2.cli.check
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
-        "name": "alice"
+        "name": "alice",
     }
     path = str(tmp_path / "privateer.json")
-    res2 = _parse_argv(["check", "--path", path])
+    _parse_argv(["check", "--path", path])
     assert _parse_argv(["check", "--path", path]) == res
     assert _parse_argv(["check", "--path", path, "--as", "alice"]) == res
     res.kwargs["name"] = "bob"
@@ -105,7 +113,7 @@ def test_can_parse_serve(tmp_path):
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
         "name": "alice",
-        "dry_run": False
+        "dry_run": False,
     }
 
 
@@ -120,7 +128,7 @@ def test_can_parse_backup(tmp_path):
         "cfg": read_config("example/simple.json"),
         "name": "alice",
         "volume": "v",
-        "dry_run": False
+        "dry_run": False,
     }
 
 
@@ -137,7 +145,7 @@ def test_can_parse_restore(tmp_path):
         "volume": "v",
         "server": None,
         "source": None,
-        "dry_run": False
+        "dry_run": False,
     }
 
 
@@ -154,7 +162,7 @@ def test_can_parse_complex_restore(tmp_path):
         "volume": "v",
         "server": "alice",
         "source": "bob",
-        "dry_run": False
+        "dry_run": False,
     }
 
 
@@ -171,7 +179,7 @@ def test_can_parse_export(tmp_path):
         "volume": "v",
         "to_dir": None,
         "source": None,
-        "dry_run": False
+        "dry_run": False,
     }
 
 
@@ -185,7 +193,6 @@ def test_error_if_unknown_identity(tmp_path):
         f.write("alice\n")
     assert _find_identity(None, tmp_path) == "alice"
     assert _find_identity("bob", tmp_path) == "bob"
-
 
 
 def test_configuration_writes_identity(tmp_path, monkeypatch):
@@ -209,6 +216,7 @@ def test_options_parsing_else_clause(tmp_path):
     class empty:  # noqa
         def __getitem__(self, name):
             return None
+
     shutil.copy("example/simple.json", tmp_path / "privateer.json")
     with open(tmp_path / ".privateer_identity", "w") as f:
         f.write("alice\n")

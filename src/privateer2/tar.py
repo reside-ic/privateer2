@@ -18,7 +18,7 @@ def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
     # backup target for anything.
     source = find_source(cfg, volume, source)
     image = f"mrcide/privateer-client:{cfg.tag}"
-    if to is None:
+    if to_dir is None:
         export_path = os.getcwd()
     else:
         export_path = os.path.abspath(to_dir)
