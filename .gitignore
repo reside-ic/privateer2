@@ -6,3 +6,4 @@ coverage.xml
 *.tar
 .privateer_identity
 tmp/
+.coverage.*

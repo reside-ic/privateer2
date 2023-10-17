@@ -3,7 +3,6 @@
   privateer2 [options] pull
   privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
-  privateer2 [options] status
   privateer2 [options] check
   privateer2 [options] server (start | stop | status)
   privateer2 [options] backup <volume>

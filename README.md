@@ -31,23 +31,36 @@ After writing a configuration, on any machine run
 privateer2 keygen --all
 ```
 
-which will generate ssh keypairs for all machines and put them in the vault.
-Then, on each machine run
+which will generate ssh keypairs for all machines and put them in the vault. This only needs to be done once, but you might need to run it again if
 
+* you add more machines to your system
+* you want to rotate keys
+
+Once keys are written to the vault, on each machine run
 
 ```
 privateer2 configure <name>
 ```
 
-replacing `<name>` with the name of the machine within either the `servers` or `clients` section of your configuration.  This sets up a special docker volume that will persist ssh keys and configurations so that communication between clients and servers is straightforward and secure.
+replacing `<name>` with the name of the machine within either the `servers` or `clients` section of your configuration.  This sets up a special docker volume that will persist ssh keys and configurations so that communication between clients and servers is straightforward and secure.  It also leaves a file `.privateer_identity` at the same location as the configuration file, which is used as the default identity for subsequent commands. Typically this is what you want.
 
-You can run
+### Manual backup
 
 ```
-privateer2 status
+privateer backup <volume>
 ```
 
-which prints information about the current setup.
+Add `--dry-run` to see the commands to run it yourself
+
+### Restore
+
+Restoration is always manual
+
+```
+privateer2 restore <volume> [--server=NAME] [--source=NAME]
+```
+
+where `--server` controls the server you are pulling from (if you have more than one configured) and `--source` controls the original machine that backed the data up (if more than one machine is pushing backups).
 
 ## Installation
 
