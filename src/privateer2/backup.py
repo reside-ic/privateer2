@@ -38,7 +38,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         print("contained within /run/privateer/config, along with our identity")
         print("in /run/privateer/id_rsa")
     else:
-        print(f"Backing up '{volume}' to '{server}'")
+        print(f"Backing up '{volume}' from '{name}' to '{server}'")
         run_docker_command("Backup", image, command=command, mounts=mounts)
         # TODO: also copy over some metadata at this point, via
         # ssh; probably best to write tiny utility in the client

@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, call
 
-import pytest
 import vault_dev
 
 import docker
@@ -32,3 +31,37 @@ def test_can_print_instructions_to_run_backup(capsys):
         )
         assert cmd in lines
         docker.from_env().volumes.get(vol).remove()
+
+
+def test_can_run_backup(monkeypatch):
+    mock_run = MagicMock()
+    monkeypatch.setattr(privateer2.backup, "run_docker_command", mock_run)
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = f"privateer_keys_{rand_str()}"
+        cfg.clients[0].key_volume = vol
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        backup(cfg, "bob", "data")
+
+        image = f"mrcide/privateer-client:{cfg.tag}"
+        command = [
+            "rsync",
+            "-av",
+            "--delete",
+            "/privateer/data",
+            "alice:/privateer/bob",
+        ]
+        mounts = [
+            docker.types.Mount(
+                "/run/privateer", vol, type="volume", read_only=True
+            ),
+            docker.types.Mount(
+                "/privateer/data", "data", type="volume", read_only=True
+            ),
+        ]
+        assert mock_run.call_count == 1
+        assert mock_run.call_args == call(
+            "Backup", image, command=command, mounts=mounts
+        )

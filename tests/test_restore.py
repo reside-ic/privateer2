@@ -1,8 +1,9 @@
-import pytest
+from unittest.mock import MagicMock, call
+
 import vault_dev
 
 import docker
-import privateer2.server
+import privateer2.restore
 from privateer2.config import read_config
 from privateer2.keys import configure, keygen_all
 from privateer2.restore import restore
@@ -30,3 +31,37 @@ def test_can_print_instructions_to_run_restore(capsys):
         )
         assert cmd in lines
         docker.from_env().volumes.get(vol).remove()
+
+
+def test_can_run_restore(monkeypatch):
+    mock_run = MagicMock()
+    monkeypatch.setattr(privateer2.restore, "run_docker_command", mock_run)
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = f"privateer_keys_{rand_str()}"
+        cfg.clients[0].key_volume = vol
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        restore(cfg, "bob", "data")
+
+        image = f"mrcide/privateer-client:{cfg.tag}"
+        command = [
+            "rsync",
+            "-av",
+            "--delete",
+            "alice:/privateer/bob/data/",
+            "/privateer/data/",
+        ]
+        mounts = [
+            docker.types.Mount(
+                "/run/privateer", vol, type="volume", read_only=True
+            ),
+            docker.types.Mount(
+                "/privateer/data", "data", type="volume", read_only=False
+            ),
+        ]
+        assert mock_run.call_count == 1
+        assert mock_run.call_args == call(
+            "Restore", image, command=command, mounts=mounts
+        )
