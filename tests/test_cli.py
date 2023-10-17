@@ -6,13 +6,13 @@ import pytest
 import privateer2.cli
 from privateer2.cli import (
     Call,
-    main,
-    pull,
     _do_configure,
     _find_identity,
     _parse_argv,
     _parse_opts,
     _show_version,
+    main,
+    pull,
 )
 from privateer2.config import read_config
 from privateer2.util import transient_working_directory

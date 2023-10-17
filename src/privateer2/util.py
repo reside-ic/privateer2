@@ -40,6 +40,25 @@ def string_to_container(text, container, path, **kwargs):
         container.put_archive(os.path.dirname(path), tar)
 
 
+def string_from_container(container, path):
+    return bytes_from_container(container, path).decode("utf-8")
+
+
+def bytes_from_container(container, path):
+    stream, status = container.get_archive(path)
+    try:
+        fd, tmp = tempfile.mkstemp(text=False)
+        with os.fdopen(fd, "wb") as f:
+            for d in stream:
+                f.write(d)
+        with open(tmp, "rb") as f:
+            t = tarfile.open(mode="r", fileobj=f)
+            p = t.extractfile(os.path.basename(path))
+            return p.read()
+    finally:
+        os.remove(tmp)
+
+
 def set_permissions(mode=None, uid=None, gid=None):
     def ret(tarinfo):
         if mode is not None:
@@ -54,8 +73,7 @@ def set_permissions(mode=None, uid=None, gid=None):
 
 
 def simple_tar_string(text, name, **kwargs):
-    if isinstance(text, str):
-        text = bytes(text, "utf-8")
+    text = bytes(text, "utf-8")
     try:
         fd, tmp = tempfile.mkstemp(text=True)
         with os.fdopen(fd, "wb") as f:
@@ -100,25 +118,6 @@ def _setdictvals(new, container):
         else:
             container[k] = v
     return container
-
-
-def string_from_container(container, path):
-    return bytes_from_container(container, path).decode("utf-8")
-
-
-def bytes_from_container(container, path):
-    stream, status = container.get_archive(path)
-    try:
-        fd, tmp = tempfile.mkstemp(text=False)
-        with os.fdopen(fd, "wb") as f:
-            for d in stream:
-                f.write(d)
-        with open(tmp, "rb") as f:
-            t = tarfile.open(mode="r", fileobj=f)
-            p = t.extractfile(os.path.basename(path))
-            return p.read()
-    finally:
-        os.remove(tmp)
 
 
 def ensure_image(name):
@@ -225,9 +224,6 @@ def run_docker_command(name, image, **kwargs):
         print(f"{name} completed successfully! Container logs:")
         log_tail(container, 10)
         container.remove()
-        # TODO: also copy over some metadata at this point, via
-        # ssh; probably best to write tiny utility in the client
-        # container that will do this for us.
     else:
         print("An error occured! Container logs:")
         log_tail(container, 20)
