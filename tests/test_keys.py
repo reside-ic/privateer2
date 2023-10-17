@@ -3,7 +3,7 @@ import vault_dev
 
 import docker
 from privateer2.config import read_config
-from privateer2.keys import _keys_data, check, configure, keygen
+from privateer2.keys import _keys_data, check, configure, keygen, keygen_all
 from privateer2.util import rand_str, string_from_volume
 
 
@@ -24,8 +24,7 @@ def test_can_generate_server_keys_data():
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        keygen(cfg, "alice")
-        keygen(cfg, "bob")
+        keygen_all(cfg)
         dat = _keys_data(cfg, "alice")
         assert dat["name"] == "alice"
         assert dat["known_hosts"] is None
@@ -36,8 +35,7 @@ def test_can_generate_client_keys_data():
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        keygen(cfg, "alice")
-        keygen(cfg, "bob")
+        keygen_all(cfg)
         dat = _keys_data(cfg, "bob")
         assert dat["name"] == "bob"
         assert dat["authorized_keys"] is None
@@ -52,8 +50,7 @@ def test_can_unpack_keys_for_server():
         cfg.vault.url = server.url()
         vol = f"privateer_keys_{rand_str()}"
         cfg.servers[0].key_volume = vol
-        keygen(cfg, "alice")
-        keygen(cfg, "bob")
+        keygen_all(cfg)
         configure(cfg, "alice")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
@@ -76,8 +73,7 @@ def test_can_unpack_keys_for_client():
         cfg.vault.url = server.url()
         vol = f"privateer_keys_{rand_str()}"
         cfg.clients[0].key_volume = vol
-        keygen(cfg, "alice")
-        keygen(cfg, "bob")
+        keygen_all(cfg)
         configure(cfg, "bob")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]

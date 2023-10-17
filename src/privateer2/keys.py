@@ -6,14 +6,23 @@ from privateer2.util import string_from_volume, string_to_volume
 
 
 def keygen(cfg, name):
+    _keygen(cfg, name, cfg.vault.client())
+
+
+def keygen_all(cfg):
     vault = cfg.vault.client()
-    data = _create_keypair()
-    path = f"{cfg.vault.prefix}/{name}"
-    # TODO: The docs are here:
-    # https://hvac.readthedocs.io/en/stable/usage/secrets_engines/kv_v1.html
-    # They do not indicate if this will error if the write fails though.
-    print(f"Writing keypair for {name}")
-    _r = vault.secrets.kv.v1.create_or_update_secret(path, secret=data)
+    for name in cfg.list_servers() + cfg.list_clients():
+        _keygen(cfg, name, vault)
+
+
+def _keygen(cfg, name, vault):
+        data = _create_keypair()
+        path = f"{cfg.vault.prefix}/{name}"
+        # TODO: The docs are here:
+        # https://hvac.readthedocs.io/en/stable/usage/secrets_engines/kv_v1.html
+        # They do not indicate if this will error if the write fails though.
+        print(f"Writing keypair for {name}")
+        _r = vault.secrets.kv.v1.create_or_update_secret(path, secret=data)
 
 
 def configure(cfg, name):

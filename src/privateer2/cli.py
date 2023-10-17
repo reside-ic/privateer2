@@ -1,7 +1,7 @@
 """Usage:
   privateer2 --version
   privateer2 [options] pull
-  privateer2 [options] keygen <name>
+  privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
   privateer2 [options] check <name>
   privateer2 [options] serve <name>
@@ -30,7 +30,7 @@ import docker
 import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config
-from privateer2.keys import check, configure, keygen
+from privateer2.keys import check, configure, keygen, keygen_all
 from privateer2.restore import restore
 from privateer2.server import serve
 from privateer2.tar import export_tar, import_tar
@@ -59,7 +59,10 @@ def main(argv=None):
     path_config = opts["-f"]
     cfg = read_config(path_config)
     if opts["keygen"]:
-        keygen(cfg, opts["<name>"])
+        if opts["--all"]:
+            keygen_all(cfg)
+        else:
+            keygen(cfg, opts["<name>"])
     elif opts["configure"]:
         configure(cfg, opts["<name>"])
     elif opts["check"]:
