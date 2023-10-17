@@ -156,8 +156,9 @@ def rand_str(n=8):
 def log_tail(container, n):
     logs = container.logs().decode("utf-8").strip().split("\n")
     if len(logs) > n:
-        print(f"(ommitting {len(logs) - n} lines of logs)")
-    print("\n".join(logs[-n:]))
+        return [f"(ommitting {len(logs) - n} lines of logs)"] + logs[-n:]
+    else:
+        return logs
 
 
 def mounts_str(mounts):
@@ -192,7 +193,7 @@ def isotimestamp():
     return now.strftime("%Y%m%d-%H%M%S")
 
 
-def take_ownership(filename, directory, *, command_only=False):
+def take_ownership(filename, directory, *, command_only=False):  # tar
     uid = os.geteuid()
     gid = os.getegid()
     cl = docker.from_env()
@@ -215,21 +216,21 @@ def take_ownership(filename, directory, *, command_only=False):
         )
 
 
-def run_docker_command(name, image, **kwargs):
+def run_docker_command(display, image, **kwargs):
     ensure_image(image)
     client = docker.from_env()
     container = client.containers.run(image, **kwargs, detach=True)
-    print(f"{name} command started. To stream progress, run:")
+    print(f"{display} command started. To stream progress, run:")
     print(f"  docker logs -f {container.name}")
     result = container.wait()
     if result["StatusCode"] == 0:
-        print(f"{name} completed successfully! Container logs:")
-        log_tail(container, 10)
+        print(f"{display} completed successfully! Container logs:")
+        print("\n".join(log_tail(container, 10)))
         container.remove()
     else:
         print("An error occured! Container logs:")
-        log_tail(container, 20)
-        msg = f"{name} failed; see {container.name} logs for details"
+        print("\n".join(log_tail(container, 20)))
+        msg = f"{display} failed; see {container.name} logs for details"
         raise Exception(msg)
 
 
@@ -237,9 +238,7 @@ def run_docker_command(name, image, **kwargs):
 def transient_working_directory(path):
     origin = os.getcwd()
     try:
-        if path is not None:
-            os.chdir(path)
+        os.chdir(path)
         yield
     finally:
-        if path is not None:
-            os.chdir(origin)
+        os.chdir(origin)
