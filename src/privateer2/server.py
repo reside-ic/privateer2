@@ -4,7 +4,7 @@ from privateer2.util import container_exists, ensure_image, mounts_str
 
 
 def serve(cfg, name, *, dry_run=False):
-    machine = check(cfg, name)
+    machine = check(cfg, name, quiet=True)
     image = f"mrcide/privateer-server:{cfg.tag}"
     ensure_image(image)
 
@@ -18,7 +18,7 @@ def serve(cfg, name, *, dry_run=False):
         if v.local:
             mounts.append(
                 docker.types.Mount(
-                    "/privateer/local/{v.name}",
+                    f"/privateer/local/{v.name}",
                     v.name,
                     type="volume",
                     read_only=True,
