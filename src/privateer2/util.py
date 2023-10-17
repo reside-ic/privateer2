@@ -130,12 +130,14 @@ def ensure_image(name):
 
 
 def container_exists(name):
-    cl = docker.from_env()
+    return bool(container_if_exists(name))
+
+
+def container_if_exists(name):
     try:
-        cl.containers.get(name)
-        return True
+        return docker.from_env().containers.get(name)
     except docker.errors.NotFound:
-        return False
+        return None
 
 
 def volume_exists(name):

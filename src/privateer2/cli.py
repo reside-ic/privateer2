@@ -5,7 +5,7 @@
   privateer2 [options] configure <name>
   privateer2 [options] status
   privateer2 [options] check
-  privateer2 [options] serve
+  privateer2 [options] server (start | stop | status)
   privateer2 [options] backup <volume>
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
   privateer2 [options] export <volume> [--to-dir=PATH] [--source=NAME]
@@ -37,7 +37,7 @@ from privateer2.backup import backup
 from privateer2.config import read_config
 from privateer2.keys import check, configure, keygen, keygen_all
 from privateer2.restore import restore
-from privateer2.server import serve
+from privateer2.server import server_start, server_status, server_stop
 from privateer2.tar import export_tar, import_tar
 
 
@@ -139,8 +139,13 @@ def _parse_opts(opts):
         name = _find_identity(opts["--as"], root_config)
         if opts["check"]:
             return Call(check, cfg=cfg, name=name)
-        elif opts["serve"]:
-            return Call(serve, cfg=cfg, name=name, dry_run=dry_run)
+        elif opts["server"]:
+            if opts["start"]:
+                return Call(server_start, cfg=cfg, name=name, dry_run=dry_run)
+            elif opts["stop"]:
+                return Call(server_stop, cfg=cfg, name=name)
+            else:
+                return Call(server_status, cfg=cfg, name=name)
         elif opts["backup"]:
             return Call(
                 backup,

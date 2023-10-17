@@ -105,17 +105,43 @@ def test_can_parse_check(tmp_path):
     assert _parse_argv(["check", "--path", path, "--as", "bob"]) == res
 
 
-def test_can_parse_serve(tmp_path):
+def test_can_parse_server_start(tmp_path):
     shutil.copy("example/simple.json", tmp_path / "privateer.json")
     with open(tmp_path / ".privateer_identity", "w") as f:
         f.write("alice\n")
     with transient_working_directory(tmp_path):
-        res = _parse_argv(["serve"])
-    assert res.target == privateer2.cli.serve
+        res = _parse_argv(["server", "start"])
+    assert res.target == privateer2.cli.server_start
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
         "name": "alice",
         "dry_run": False,
+    }
+
+
+def test_can_parse_server_status(tmp_path):
+    shutil.copy("example/simple.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("alice\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["server", "status"])
+    assert res.target == privateer2.cli.server_status
+    assert res.kwargs == {
+        "cfg": read_config("example/simple.json"),
+        "name": "alice",
+    }
+
+
+def test_can_parse_server_stop(tmp_path):
+    shutil.copy("example/simple.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("alice\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["server", "stop"])
+    assert res.target == privateer2.cli.server_stop
+    assert res.kwargs == {
+        "cfg": read_config("example/simple.json"),
+        "name": "alice",
     }
 
 

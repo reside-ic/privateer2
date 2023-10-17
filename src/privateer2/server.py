@@ -1,9 +1,14 @@
 import docker
 from privateer2.keys import check
-from privateer2.util import container_exists, ensure_image, mounts_str
+from privateer2.util import (
+    container_exists,
+    container_if_exists,
+    ensure_image,
+    mounts_str,
+)
 
 
-def serve(cfg, name, *, dry_run=False):
+def server_start(cfg, name, *, dry_run=False):
     machine = check(cfg, name, quiet=True)
     image = f"mrcide/privateer-server:{cfg.tag}"
     ensure_image(image)
@@ -60,3 +65,22 @@ def serve(cfg, name, *, dry_run=False):
         ports=ports,
     )
     print(f"Server {name} now running on port {machine.port}")
+
+
+def server_stop(cfg, name):
+    machine = check(cfg, name, quiet=True)
+    container = container_if_exists(machine.container)
+    if container:
+        if container.status == "running":
+            container.stop()
+    else:
+        print("Container '{machine.container}' for '{name}' does not exist")
+
+
+def server_status(cfg, name):
+    machine = check(cfg, name, quiet=False)
+    container = container_if_exists(machine.container)
+    if container:
+        print(container.status)
+    else:
+        print("not running")
