@@ -41,7 +41,7 @@
         }
     ],
     "vault": {
-        "url": "http://vault.dide.ic.ac.uk:8200",
+        "url": "https://vault.dide.ic.ac.uk:8200",
         "prefix": "/secret/vimc/privateer"
     }
 }
