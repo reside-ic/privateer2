@@ -11,7 +11,7 @@ def vault_client(addr, token=None):
     if re_gh.match(token):
         print("logging into vault using github")
         client = hvac.Client(addr)
-        client.github.login(token)
+        client.auth.github.login(token)
     else:
         client = hvac.Client(addr, token=token)
     return client

@@ -23,8 +23,8 @@ class Server(BaseModel):
 
 class Client(BaseModel):
     name: str
-    backup: List[str]
-    restore: List[str]
+    backup: List[str] = []
+    restore: List[str] = []
     key_volume: str = "privateer_keys"
 
 
