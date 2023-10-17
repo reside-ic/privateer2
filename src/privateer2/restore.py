@@ -35,7 +35,7 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
         print()
         print("Note that this uses hostname/port information for the server")
         print("contained within /run/privateer/config, along with our identity")
-        print("in /run/config/id_rsa")
+        print("in /run/privateer/id_rsa")
     else:
         print(f"Restoring '{volume}' from '{server}'")
         run_docker_command("Restore", image, command=command, mounts=mounts)

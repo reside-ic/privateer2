@@ -4,3 +4,5 @@ dist/
 .coverage
 coverage.xml
 *.tar
+.privateer_identity
+tmp/

@@ -14,50 +14,71 @@ If you need to interact with this on the command line, use:
 
 ```
 export VAULT_ADDR='http://127.0.0.1:8200'
-```
-
-You may need to export your root token
-
-```
-export VAULT_TOKEN=hvs.cPdO7xlwqNugg8xTF7KrxJyj
+export VAULT_TOKEN=$(cat ~/.vault-token)
 ```
 
 within the hatch environment
 
-
 ```
-privateer2 -f example/simple.json keygen alice
-privateer2 -f example/simple.json keygen bob
-privateer2 -f example/simple.json configure alice
+privateer2 --path example/simple.json keygen --all
 ```
 
 ## Worked example
 
+We need to swap in the globally-findable address for alice (`alice.example.com`) for the value of the machine this is tested on:
+
 ```
-privateer2 -f example/local.json keygen alice
-privateer2 -f example/local.json keygen bob
-privateer2 -f example/local.json configure alice
-privateer2 -f example/local.json configure bob
-privateer2 -f example/local.json serve alice --dry-run
+mkdir -p tmp
+sed "s/alice.example.com/$(hostname)/" example/local.json > tmp/privateer.json
 ```
 
-Create some random data
+Set up the key volumes (and remove the file that would ordinarily be created)
+
+```
+privateer2 --path tmp/privateer.json configure alice
+privateer2 --path tmp/privateer.json configure bob
+rm -f tmp/.privateer_identity
+```
+
+Start the server, as a background process
+
+```
+privateer2 --path tmp/privateer.json --as=alice server start
+```
+
+Create some random data within the `data` volume (this is the one that we want to send from `bob` to `alice`)
 
 ```
 docker volume create data
-docker run -it --rm -v data:/data ubuntu bash -c "base64 /dev/urandom | head -c 10000000 > /data/file.txt"
+docker run -it --rm -v data:/data ubuntu bash -c "base64 /dev/urandom | head -c 100000 > /data/file1.txt"
 ```
 
+We can now backup from `bob` to `alice` as:
+
 ```
-docker run -it --rm -v privateer_keys_bob:/run/privateer:ro -v data:/privateer/data:ro -w /privateer mrcide/privateer-client:docker bash
-
-rsync -av -e 'ssh -p 10022 -i /run/privateer/id_rsa' --delete data/ root@wpia-dide136:/privateer/data/bob/
+privateer2 --path tmp/privateer.json --as=bob backup data
 ```
 
-privateer2 -f example/local.json backup bob --dry-run
-privateer2 -f example/local.json backup bob
+or see what commands you would need in order to try this yourself:
 
-rsync -av --delete data/ root@wpia-dide136:/privateer/data/bob/
+```
+privateer2 --path tmp/privateer.json --as=bob backup data --dry-run
+```
 
+Delete the volume
 
-rsync -av --delete alice:/privateer/bob/data /privateer
+```
+docker volume rm data
+```
+
+We can now restore it:
+
+```
+privateer2 --path tmp/privateer.json --as=bob restore data
+```
+
+or see the commands to do this outselves:
+
+```
+privateer2 --path tmp/privateer.json --as=bob restore data --dry-run
+```

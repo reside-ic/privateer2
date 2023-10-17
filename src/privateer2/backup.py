@@ -36,7 +36,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         print()
         print("Note that this uses hostname/port information for the server")
         print("contained within /run/privateer/config, along with our identity")
-        print("in /run/config/id_rsa")
+        print("in /run/privateer/id_rsa")
     else:
         print(f"Backing up '{volume}' to '{server}'")
         run_docker_command("Backup", image, command=command, mounts=mounts)
