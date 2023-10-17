@@ -233,3 +233,15 @@ def run_docker_command(name, image, **kwargs):
         log_tail(container, 20)
         msg = f"{name} failed; see {container.name} logs for details"
         raise Exception(msg)
+
+
+@contextmanager
+def transient_working_directory(path):
+    origin = os.getcwd()
+    try:
+        if path is not None:
+            os.chdir(path)
+        yield
+    finally:
+        if path is not None:
+            os.chdir(origin)

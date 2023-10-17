@@ -12,7 +12,7 @@ from privateer2.util import (
 )
 
 
-def export_tar(cfg, name, volume, *, to=None, source=None, dry_run=False):
+def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
     # TODO: check here that volume is either local, or that it is a
     # backup target for anything.
@@ -21,7 +21,7 @@ def export_tar(cfg, name, volume, *, to=None, source=None, dry_run=False):
     if to is None:
         export_path = os.getcwd()
     else:
-        export_path = os.path.abspath(to)
+        export_path = os.path.abspath(to_dir)
     mounts = [
         docker.types.Mount("/export", export_path, type="bind"),
         docker.types.Mount(
