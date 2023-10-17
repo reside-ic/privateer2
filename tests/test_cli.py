@@ -1,11 +1,13 @@
 import shutil
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
 import privateer2.cli
 from privateer2.cli import (
     Call,
+    main,
+    pull,
     _do_configure,
     _find_identity,
     _parse_argv,
@@ -223,3 +225,27 @@ def test_options_parsing_else_clause(tmp_path):
     with pytest.raises(Exception, match="Invalid cli call -- privateer bug"):
         with transient_working_directory(tmp_path):
             _parse_opts(empty())
+
+
+def test_call_main(monkeypatch):
+    mock_call = MagicMock()
+    monkeypatch.setattr(privateer2.cli, "_parse_argv", mock_call)
+    main(["--version"])
+    assert mock_call.call_count == 1
+    assert mock_call.call_args == call(["--version"])
+    assert mock_call.return_value.run.call_count == 1
+    assert mock_call.return_value.run.call_args == call()
+
+
+def test_run_pull(monkeypatch):
+    cfg = read_config("example/simple.json")
+    image_client = f"mrcide/privateer-client:{cfg.tag}"
+    image_server = f"mrcide/privateer-server:{cfg.tag}"
+    mock_docker = MagicMock()
+    monkeypatch.setattr(privateer2.cli, "docker", mock_docker)
+    pull(cfg)
+    assert mock_docker.from_env.call_count == 1
+    client = mock_docker.from_env.return_value
+    assert client.images.pull.call_count == 2
+    assert client.images.pull.call_args_list[0] == call(image_client)
+    assert client.images.pull.call_args_list[1] == call(image_server)
