@@ -104,3 +104,12 @@ def test_error_on_check_if_unconfigured():
         cfg.servers[0].key_volume = vol
         with pytest.raises(Exception, match="'alice' looks unconfigured"):
             check(cfg, "alice")
+
+
+def test_error_on_check_if_unknown_machine():
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        msg = "Invalid configuration 'eve', must be one of 'alice', 'bob'"
+        with pytest.raises(Exception, match=msg):
+            check(cfg, "eve")

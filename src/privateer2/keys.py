@@ -28,7 +28,7 @@ def _keygen(cfg, name, vault):
 def configure(cfg, name):
     cl = docker.from_env()
     data = _keys_data(cfg, name)
-    vol = _key_volume_name(cfg, name)
+    vol = _machine_config(cfg, name).key_volume
     cl.volumes.create(vol)
     print(f"Copying keypair for '{name}' to volume '{vol}'")
     string_to_volume(
@@ -131,13 +131,11 @@ def _keys_data(cfg, name):
     return ret
 
 
-def _key_volume_name(cfg, name):
-    return _machine_config(cfg, name).key_volume
-
-
 def _machine_config(cfg, name):
     for el in cfg.servers + cfg.clients:
         if el.name == name:
             return el
-    msg = "Invalid configuration, can't determine volume name"
+    valid = cfg.list_servers() + cfg.list_clients()
+    valid_str = ", ".join(f"'{x}'" for x in valid)
+    msg = f"Invalid configuration '{name}', must be one of {valid_str}"
     raise Exception(msg)
