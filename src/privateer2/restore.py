@@ -26,7 +26,7 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
     ]
     if dry_run:
         cmd = ["docker", "run", "--rm", *mounts_str(mounts), image, *command]
-        print("Command to manually run restore")
+        print("Command to manually run restore:")
         print()
         print(f"  {' '.join(cmd)}")
         print()

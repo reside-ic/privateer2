@@ -25,7 +25,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
     ]
     if dry_run:
         cmd = ["docker", "run", "--rm", *mounts_str(mounts), image, *command]
-        print("Command to manually run backup")
+        print("Command to manually run backup:")
         print()
         print(f"  {' '.join(cmd)}")
         print()
