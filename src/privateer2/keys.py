@@ -63,7 +63,7 @@ def check(cfg, name, *, quiet=False):
     vol = machine.key_volume
     try:
         docker.from_env().volumes.get(vol)
-    except docker.errors.VolumeNotFound:
+    except docker.errors.NotFound:
         msg = f"'{name}' looks unconfigured"
         raise Exception(msg) from None
     found = string_from_volume(vol, "name")

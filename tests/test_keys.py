@@ -94,3 +94,13 @@ def test_can_unpack_keys_for_client():
         with pytest.raises(Exception, match=msg):
             check(cfg, "alice")
         client.volumes.get(vol).remove()
+
+
+def test_error_on_check_if_unconfigured():
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = f"privateer_keys_{rand_str()}"
+        cfg.servers[0].key_volume = vol
+        with pytest.raises(Exception, match="'alice' looks unconfigured"):
+            check(cfg, "alice")
