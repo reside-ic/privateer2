@@ -21,7 +21,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         "-av",
         "--delete",
         src_mount,
-        f"{server}:/privateer/{name}",
+        f"{server}:/privateer/volumes/{name}",
     ]
     if dry_run:
         cmd = ["docker", "run", "--rm", *mounts_str(mounts), image, *command]

@@ -21,7 +21,7 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
         "rsync",
         "-av",
         "--delete",
-        f"{server}:/privateer/{name}/{volume}/",
+        f"{server}:/privateer/volumes/{name}/{volume}/",
         f"{dest_mount}/",
     ]
     if dry_run:

@@ -26,7 +26,8 @@ def test_can_print_instructions_to_run_restore(capsys, managed_docker):
             "  docker run --rm "
             f"-v {vol}:/run/privateer:ro -v data:/privateer/data "
             "mrcide/privateer-client:docker "
-            "rsync -av --delete alice:/privateer/bob/data/ /privateer/data/"
+            "rsync -av --delete alice:/privateer/volumes/bob/data/ "
+            "/privateer/data/"
         )
         assert cmd in lines
 
@@ -48,7 +49,7 @@ def test_can_run_restore(monkeypatch, managed_docker):
             "rsync",
             "-av",
             "--delete",
-            "alice:/privateer/bob/data/",
+            "alice:/privateer/volumes/bob/data/",
             "/privateer/data/",
         ]
         mounts = [

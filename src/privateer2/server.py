@@ -17,7 +17,9 @@ def server_start(cfg, name, *, dry_run=False):
         docker.types.Mount(
             "/run/privateer", machine.key_volume, type="volume", read_only=True
         ),
-        docker.types.Mount("/privateer", machine.data_volume, type="volume"),
+        docker.types.Mount(
+            "/privateer/volumes", machine.data_volume, type="volume"
+        ),
     ]
     for v in cfg.volumes:
         if v.local:

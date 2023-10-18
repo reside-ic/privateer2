@@ -28,7 +28,7 @@ def test_can_print_instructions_to_start_server(capsys, managed_docker):
         assert "Command to manually launch server:" in lines
         cmd = (
             f"  docker run --rm -d --name {name} "
-            f"-v {vol_keys}:/run/privateer:ro -v {vol_data}:/privateer "
+            f"-v {vol_keys}:/run/privateer:ro -v {vol_data}:/privateer/volumes "
             "-p 10022:22 mrcide/privateer-server:docker"
         )
         assert cmd in lines
@@ -66,7 +66,7 @@ def test_can_start_server(monkeypatch, managed_docker):
             "/run/privateer", vol_keys, type="volume", read_only=True
         )
         assert mount.call_args_list[1] == call(
-            "/privateer", vol_data, type="volume"
+            "/privateer/volumes", vol_data, type="volume"
         )
 
 
@@ -96,7 +96,7 @@ def test_can_start_server_with_local_volume(monkeypatch, managed_docker):
             "/run/privateer", vol_keys, type="volume", read_only=True
         )
         assert mount.call_args_list[1] == call(
-            "/privateer", vol_data, type="volume"
+            "/privateer/volumes", vol_data, type="volume"
         )
         assert mount.call_args_list[2] == call(
             f"/privateer/local/{vol_other}",
