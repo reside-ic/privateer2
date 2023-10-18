@@ -25,7 +25,7 @@ def test_can_print_instructions_to_run_restore(capsys, managed_docker):
         cmd = (
             "  docker run --rm "
             f"-v {vol}:/privateer/keys:ro -v data:/privateer/data "
-            "mrcide/privateer-client:docker "
+            f"mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete alice:/privateer/volumes/bob/data/ "
             "/privateer/data/"
         )

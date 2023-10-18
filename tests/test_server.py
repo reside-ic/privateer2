@@ -30,7 +30,7 @@ def test_can_print_instructions_to_start_server(capsys, managed_docker):
             f"  docker run --rm -d --name {name} "
             f"-v {vol_keys}:/privateer/keys:ro "
             f"-v {vol_data}:/privateer/volumes "
-            "-p 10022:22 mrcide/privateer-server:docker"
+            f"-p 10022:22 mrcide/privateer-server:{cfg.tag}"
         )
         assert cmd in lines
 
