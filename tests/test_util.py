@@ -53,15 +53,15 @@ def test_can_pull_image_if_required():
         try:
             cl.images.get(name)
             return True
-        except docker.errors.NotFound:
+        except docker.errors.ImageNotFound:
             return False
 
     cl = docker.from_env()
-    if image_exists("alpine"):
-        cl.images.get("alpine").remove()
-    assert not image_exists("alpine")
-    privateer2.util.ensure_image("alpine")
-    assert image_exists("alpine")
+    if image_exists("hello-world:latest"):
+        cl.images.get("hello-world:latest").remove()  # pragma: no cover
+    assert not image_exists("hello-world:latest")
+    privateer2.util.ensure_image("hello-world:latest")
+    assert image_exists("hello-world:latest")
 
 
 def test_can_tail_logs_from_container():
@@ -119,3 +119,44 @@ def test_can_run_failing_command(capsys):
     assert lines[0] == "Test command started. To stream progress, run:"
     assert lines[1] == f"  docker logs -f {name}"
     assert lines[2] == "An error occured! Container logs:"
+
+
+def test_can_detect_if_volume_exists():
+    name = f"tmp_{privateer2.util.rand_str()}"
+    cl = docker.from_env()
+    cl.volumes.create(name)
+    assert privateer2.util.volume_exists(name)
+    cl.volumes.get(name).remove()
+    assert not privateer2.util.volume_exists(name)
+
+
+def test_can_take_ownership_of_a_file(tmp_path):
+    cl = docker.from_env()
+    mounts = [docker.types.Mount("/src", str(tmp_path), type="bind")]
+    command = ["touch", "/src/newfile"]
+    cl.containers.run("ubuntu", mounts=mounts, command=command)
+    path = tmp_path / "newfile"
+    info = os.stat(path)
+    assert info.st_uid == 0
+    assert info.st_gid == 0
+    uid = os.geteuid()
+    gid = os.getegid()
+    cmd = privateer2.util.take_ownership(
+        "newfile", str(tmp_path), command_only=True
+    )
+    expected = [
+        "docker",
+        "run",
+        *privateer2.util.mounts_str(mounts),
+        "-w",
+        "/src",
+        "alpine",
+        "chown",
+        f"{uid}.{gid}",
+        "newfile",
+    ]
+    assert cmd == expected
+    privateer2.util.take_ownership("newfile", str(tmp_path))
+    info = os.stat(path)
+    assert info.st_uid == uid
+    assert info.st_gid == gid
