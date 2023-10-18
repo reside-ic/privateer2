@@ -141,12 +141,14 @@ def container_if_exists(name):
 
 
 def volume_exists(name):
-    cl = docker.from_env()
+    return bool(volume_if_exists(name))
+
+
+def volume_if_exists(name):
     try:
-        cl.volumes.get(name)
-        return True
+        return docker.from_env().volumes.get(name)
     except docker.errors.NotFound:
-        return False
+        return None
 
 
 def rand_str(n=8):
