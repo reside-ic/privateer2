@@ -48,7 +48,7 @@ python = "python3"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
-  "git+https://github.com/vimc/vimc-dev.git@mrc-4644"
+  "vault-dev@git+https://github.com/vimc/vault-dev#egg=mrc-4644"
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
