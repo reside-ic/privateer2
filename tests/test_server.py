@@ -28,7 +28,8 @@ def test_can_print_instructions_to_start_server(capsys, managed_docker):
         assert "Command to manually launch server:" in lines
         cmd = (
             f"  docker run --rm -d --name {name} "
-            f"-v {vol_keys}:/privateer/keys:ro -v {vol_data}:/privateer/volumes "
+            f"-v {vol_keys}:/privateer/keys:ro "
+            f"-v {vol_data}:/privateer/volumes "
             "-p 10022:22 mrcide/privateer-server:docker"
         )
         assert cmd in lines
