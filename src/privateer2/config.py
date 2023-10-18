@@ -81,9 +81,6 @@ def _check_config(cfg):
         err_str = ", ".join(f"'{nm}'" for nm in err)
         msg = f"Invalid machine listed as both a client and a server: {err_str}"
         raise Exception(msg)
-    if "local" in cfg.list_servers() or "local" in cfg.list_clients():
-        msg = "Machines cannot be called 'local'"
-        raise Exception(msg)
     vols_local = [x.name for x in cfg.volumes if x.local]
     vols_all = [x.name for x in cfg.volumes]
     for cl in cfg.clients:

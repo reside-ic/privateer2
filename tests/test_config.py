@@ -86,13 +86,6 @@ def test_machines_cannot_be_client_and_server():
         _check_config(cfg)
 
 
-def test_machines_cannot_be_called_local():
-    cfg = read_config("example/simple.json")
-    cfg.clients[0].name = "local"
-    with pytest.raises(Exception, match="Machines cannot be called 'local'"):
-        _check_config(cfg)
-
-
 def test_restore_volumes_are_known():
     cfg = read_config("example/simple.json")
     cfg.clients[0].restore.append("other")
