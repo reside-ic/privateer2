@@ -46,6 +46,12 @@ Start the server, as a background process
 privateer2 --path tmp/privateer.json --as=alice server start
 ```
 
+Once `alice` is running, we can test this connection from `bob`:
+
+```
+privateer2 --path tmp/privateer.json --as=bob check --connection
+```
+
 Create some random data within the `data` volume (this is the one that we want to send from `bob` to `alice`)
 
 ```
@@ -82,3 +88,7 @@ or see the commands to do this outselves:
 ```
 privateer2 --path tmp/privateer.json --as=bob restore data --dry-run
 ```
+
+## Writing tests
+
+We use a lot of global resources, so it's easy to leave behind volumes and containers (often exited) after running tests.  At best this is lazy and messy, but at worst it creates hard-to-diagnose dependencies between tests. Try and create names for auto-cleaned volumes and containers using the `managed_docker` fixture (see [`tests/conftest.py`](tests/conftest.py) for details).
