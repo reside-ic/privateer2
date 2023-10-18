@@ -7,7 +7,6 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
     server = match_value(server, cfg.list_servers(), "server")
     volume = match_value(volume, machine.backup, "volume")
-    machine = check(cfg, name, quiet=True)
     image = f"mrcide/privateer-client:{cfg.tag}"
     src_mount = f"/privateer/{volume}"
     mounts = [
