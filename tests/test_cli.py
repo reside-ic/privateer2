@@ -58,6 +58,11 @@ def test_can_parse_keygen_one():
     }
 
 
+def test_can_prevent_use_of_as_with_keygen():
+    with pytest.raises(Exception, match="Don't use '--as' with 'keygen'"):
+        _parse_argv(["keygen", "--path=example/local.json", "--as", "x", "y"])
+
+
 def test_can_parse_configure():
     res = _parse_argv(["configure", "--path=example/simple.json", "alice"])
     assert res.target == privateer2.cli._do_configure
