@@ -1,6 +1,6 @@
 PasswordAuthentication no
-IdentityFile /run/privateer/id_rsa
+IdentityFile /privateer/keys/id_rsa
 SendEnv LANG LC_*
 HashKnownHosts no
-UserKnownHostsFile /run/privateer/known_hosts
-Include /run/privateer/config
+UserKnownHostsFile /privateer/keys/known_hosts
+Include /privateer/keys/config

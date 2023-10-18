@@ -147,7 +147,7 @@ def _check_connections(cfg, machine):
     image = f"mrcide/privateer-client:{cfg.tag}"
     mounts = [
         docker.types.Mount(
-            "/run/privateer", machine.key_volume, type="volume", read_only=True
+            "/privateer/keys", machine.key_volume, type="volume", read_only=True
         )
     ]
     cl = docker.from_env()
@@ -159,7 +159,7 @@ def _check_connections(cfg, machine):
             flush=True,
         )
         try:
-            command = ["ssh", server.name, "cat", "/run/privateer/name"]
+            command = ["ssh", server.name, "cat", "/privateer/keys/name"]
             cl.containers.run(
                 image, mounts=mounts, command=command, remove=True
             )

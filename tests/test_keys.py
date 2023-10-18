@@ -170,13 +170,13 @@ def test_can_check_connections(capsys, monkeypatch, managed_docker):
         mount = mock_docker.types.Mount
         assert mount.call_count == 1
         assert mount.call_args_list[0] == call(
-            "/run/privateer", vol_keys_bob, type="volume", read_only=True
+            "/privateer/keys", vol_keys_bob, type="volume", read_only=True
         )
         assert client.containers.run.call_count == 1
         assert client.containers.run.call_args == call(
             f"mrcide/privateer-client:{cfg.tag}",
             mounts=[mount.return_value],
-            command=["ssh", "alice", "cat", "/run/privateer/name"],
+            command=["ssh", "alice", "cat", "/privateer/keys/name"],
             remove=True,
         )
 
@@ -209,13 +209,13 @@ def test_can_report_connection_failure(capsys, monkeypatch, managed_docker):
         mount = mock_docker.types.Mount
         assert mount.call_count == 1
         assert mount.call_args_list[0] == call(
-            "/run/privateer", vol_keys_bob, type="volume", read_only=True
+            "/privateer/keys", vol_keys_bob, type="volume", read_only=True
         )
         assert client.containers.run.call_count == 1
         assert client.containers.run.call_args == call(
             f"mrcide/privateer-client:{cfg.tag}",
             mounts=[mount.return_value],
-            command=["ssh", "alice", "cat", "/run/privateer/name"],
+            command=["ssh", "alice", "cat", "/privateer/keys/name"],
             remove=True,
         )
 

@@ -7,8 +7,8 @@ PermitRootLogin prohibit-password
 
 PubkeyAuthentication yes
 
-AuthorizedKeysFile	/run/privateer/authorized_keys
-HostKey /run/privateer/id_rsa
+AuthorizedKeysFile	/privateer/keys/authorized_keys
+HostKey /privateer/keys/id_rsa
 
 PasswordAuthentication no
 ChallengeResponseAuthentication no

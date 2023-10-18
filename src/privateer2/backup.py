@@ -12,7 +12,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
     src_mount = f"/privateer/{volume}"
     mounts = [
         docker.types.Mount(
-            "/run/privateer", machine.key_volume, type="volume", read_only=True
+            "/privateer/keys", machine.key_volume, type="volume", read_only=True
         ),
         docker.types.Mount(src_mount, volume, type="volume", read_only=True),
     ]
@@ -35,8 +35,8 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         )
         print()
         print("Note that this uses hostname/port information for the server")
-        print("contained within /run/privateer/config, along with our identity")
-        print("in /run/privateer/id_rsa")
+        print("contained within (config), along with our identity (id_rsa)")
+        print("in the directory /privateer/keys")
     else:
         print(f"Backing up '{volume}' from '{name}' to '{server}'")
         run_docker_command("Backup", image, command=command, mounts=mounts)

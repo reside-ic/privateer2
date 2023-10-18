@@ -7,4 +7,4 @@ RUN apt-get update && \
         mkdir -p /root/.ssh
 
 COPY ssh_config /etc/ssh/ssh_config
-VOLUME /run/privateer
+VOLUME /privateer/keys
