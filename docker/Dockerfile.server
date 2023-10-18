@@ -8,9 +8,6 @@ RUN apt-get update && \
         mkdir -p /var/run/sshd && \
         mkdir -p /root/.ssh
 
-RUN apt-get update && \
-        apt-get install -y --no-install-recommends python3-hvac
-
 COPY sshd_config /etc/ssh/sshd_config
 
 VOLUME /privateer/keys
