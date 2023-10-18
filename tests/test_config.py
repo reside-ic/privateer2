@@ -17,7 +17,7 @@ def test_can_read_config():
     assert len(cfg.volumes) == 1
     assert cfg.volumes[0].name == "data"
     assert cfg.vault.url == "http://localhost:8200"
-    assert cfg.vault.prefix == "/secret/privateer"
+    assert cfg.vault.prefix == "/privateer"
     assert cfg.list_servers() == ["alice"]
     assert cfg.list_clients() == ["bob"]
 
@@ -131,3 +131,15 @@ def test_can_find_appropriate_source_if_local():
         find_source(cfg, "data", "bob")
     with pytest.raises(Exception, match=msg):
         find_source(cfg, "data", "local")
+
+
+def test_can_strip_leading_secret_from_path():
+    cfg = read_config("example/simple.json")
+
+    cfg.vault.prefix = "/secret/my/path"
+    _check_config(cfg)
+    assert cfg.vault.prefix == "/my/path"
+
+    cfg.vault.prefix = "/my/path"
+    _check_config(cfg)
+    assert cfg.vault.prefix == "/my/path"

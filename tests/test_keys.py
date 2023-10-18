@@ -23,7 +23,7 @@ def test_can_create_keys():
         cfg.vault.url = server.url()
         keygen(cfg, "alice")
         client = cfg.vault.client()
-        response = client.secrets.kv.v1.read_secret("/secret/privateer/alice")
+        response = client.secrets.kv.v1.read_secret("/privateer/alice")
         pair = response["data"]
         assert set(pair.keys()) == {"private", "public"}
         assert pair["public"].startswith("ssh-rsa")

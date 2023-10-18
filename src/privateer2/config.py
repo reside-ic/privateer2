@@ -95,6 +95,8 @@ def _check_config(cfg):
             if v in vols_local:
                 msg = f"Client '{cl.name}' backs up local volume '{v}'"
                 raise Exception(msg)
+    if cfg.vault.prefix.startswith("/secret"):
+        cfg.vault.prefix = cfg.vault.prefix[7:]
 
 
 def _check_not_duplicated(els, name):
