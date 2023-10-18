@@ -35,8 +35,8 @@ jobs:
           pip install hatch
       - name: Pull images
         run: |
-          docker pull mrcide/privateer-server:${GITHUB_REF_NAME}
-          docker pull mrcide/privateer-client:${GITHUB_REF_NAME}
+          docker pull mrcide/privateer-server:prototype
+          docker pull mrcide/privateer-client:prototype
       - name: Test
         run: |
           hatch run cov-ci
