@@ -156,6 +156,23 @@ def test_can_parse_backup(tmp_path):
         "cfg": read_config("example/simple.json"),
         "name": "alice",
         "volume": "v",
+        "server": None,
+        "dry_run": False,
+    }
+
+
+def test_can_parse_backup_with_server(tmp_path):
+    shutil.copy("example/simple.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("alice\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["backup", "v", "--server", "alice"])
+    assert res.target == privateer2.cli.backup
+    assert res.kwargs == {
+        "cfg": read_config("example/simple.json"),
+        "name": "alice",
+        "volume": "v",
+        "server": "alice",
         "dry_run": False,
     }
 

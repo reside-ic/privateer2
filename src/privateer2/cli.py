@@ -5,7 +5,7 @@
   privateer2 [options] configure <name>
   privateer2 [options] check [--connection]
   privateer2 [options] server (start | stop | status)
-  privateer2 [options] backup <volume>
+  privateer2 [options] backup <volume> [--server=NAME]
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
 
 Options:
@@ -134,6 +134,7 @@ def _parse_opts(opts):
                 cfg=cfg,
                 name=name,
                 volume=opts["<volume>"],
+                server=opts["--server"],
                 dry_run=dry_run,
             )
         elif opts["restore"]:
