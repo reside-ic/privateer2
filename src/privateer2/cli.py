@@ -6,6 +6,8 @@
   privateer2 [options] check [--connection]
   privateer2 [options] backup <volume> [--server=NAME]
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
+  privateer2 [options] export <volume> [--to-dir=PATH] [--source=NAME]
+  privateer2 [options] import <tarfile> <volume>
   privateer2 [options] server (start | stop | status)
   privateer2 [options] schedule (start | stop | status)
 
@@ -18,6 +20,11 @@ Commentary:
   In all the above '--as' (or <name>) refers to the name of the client
   or server being acted on; the machine we are generating keys for,
   configuring, checking, serving, backing up from or restoring to.
+
+  Note that the 'import' subcommand is quite different and does not
+  interact with the configuration; it will reject options '--as' and
+  '--path'. If 'volume' exists already, it will fail, so this is
+  fairly safe.
 
   The server and schedule commands start background containers that
   run forever (with the 'start' option). Check in on them with
@@ -38,6 +45,7 @@ from privateer2.keys import keygen, keygen_all
 from privateer2.restore import restore
 from privateer2.schedule import schedule_start, schedule_status, schedule_stop
 from privateer2.server import server_start, server_status, server_stop
+from privateer2.tar import export_tar, import_tar
 
 
 def pull(cfg):
@@ -114,7 +122,16 @@ def _parse_opts(opts):
         return Call(_show_version)
 
     dry_run = opts["--dry-run"]
-    name = opts["--as"]
+    if opts["import"]:
+        _dont_use("--as", opts, "import")
+        _dont_use("--path", opts, "import")
+        return Call(
+            import_tar,
+            volume=opts["<volume>"],
+            tarfile=opts["<tarfile>"],
+            dry_run=dry_run,
+        )
+
     path_config = _path_config(opts["--path"])
     root_config = os.path.dirname(path_config)
     cfg = read_config(path_config)
@@ -156,6 +173,16 @@ def _parse_opts(opts):
                 name=name,
                 volume=opts["<volume>"],
                 server=opts["--server"],
+                source=opts["--source"],
+                dry_run=dry_run,
+            )
+        elif opts["export"]:
+            return Call(
+                export_tar,
+                cfg=cfg,
+                name=name,
+                volume=opts["<volume>"],
+                to_dir=opts["--to-dir"],
                 source=opts["--source"],
                 dry_run=dry_run,
             )
