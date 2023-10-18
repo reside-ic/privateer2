@@ -8,7 +8,6 @@ from privateer2.util import (
     volume_if_exists,
 )
 
-
 vault_dev.ensure_installed()
 
 

@@ -140,6 +140,7 @@ def test_error_on_check_if_unknown_machine():
         with pytest.raises(Exception, match=msg):
             check(cfg, "eve")
 
+
 @pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="firewall issues?")
 def test_can_test_connection(capsys, managed_docker):
     with vault_dev.Server(export_token=True) as server:
