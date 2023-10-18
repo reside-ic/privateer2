@@ -6,12 +6,12 @@ HERE=$(dirname $0)
 
 docker build --pull \
        --tag $TAG_SERVER_SHA \
-       -f Dockerfile.server \
+       -f $HERE/Dockerfile.server \
        $HERE
 
 docker build --pull \
        --tag $TAG_CLIENT_SHA \
-       -f Dockerfile.client \
+       -f $HERE/Dockerfile.client \
        $HERE
 
 docker push $TAG_SERVER_SHA
