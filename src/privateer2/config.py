@@ -46,7 +46,7 @@ class Config(BaseModel):
     clients: List[Client]
     volumes: List[Volume]
     vault: Vault
-    tag: str = "docker"
+    tag: str = "prototype"
 
     def model_post_init(self, __context):
         _check_config(self)
