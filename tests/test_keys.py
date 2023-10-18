@@ -1,6 +1,4 @@
 from unittest.mock import MagicMock, call
-import os
-import platform
 
 import pytest
 import vault_dev
@@ -8,8 +6,14 @@ import vault_dev
 import docker
 import privateer2.keys
 from privateer2.config import read_config
-from privateer2.keys import _check_connections, _keys_data, check, configure, keygen, keygen_all
-from privateer2.server import transient_server
+from privateer2.keys import (
+    _check_connections,
+    _keys_data,
+    check,
+    configure,
+    keygen,
+    keygen_all,
+)
 from privateer2.util import string_from_volume
 
 
@@ -158,7 +162,9 @@ def test_can_check_connections(capsys, monkeypatch, managed_docker):
         _check_connections(cfg, cfg.clients[0])
 
         out = capsys.readouterr().out
-        assert out == "checking connection to 'alice' (alice.example.com)...OK\n"
+        assert (
+            out == "checking connection to 'alice' (alice.example.com)...OK\n"
+        )
         assert mock_docker.from_env.called
         client = mock_docker.from_env.return_value
         mount = mock_docker.types.Mount
@@ -212,6 +218,7 @@ def test_can_report_connection_failure(capsys, monkeypatch, managed_docker):
             command=["ssh", "alice", "cat", "/run/privateer/name"],
             remove=True,
         )
+
 
 def test_only_test_connection_for_clients(monkeypatch, managed_docker):
     mock_check = MagicMock()

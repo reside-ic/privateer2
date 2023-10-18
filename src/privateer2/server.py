@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-
 import docker
 from privateer2.keys import check
 from privateer2.util import (
