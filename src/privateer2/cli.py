@@ -9,7 +9,7 @@
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
 
 Options:
-  --path=PATH  The path to the configuration (rather than privateer.json)
+  --path=PATH  The path to the configuration, or directory with privateer.json
   --as=NAME    The machine to run the command as
   --dry-run    Do nothing, but print docker commands
 
@@ -90,13 +90,24 @@ def _parse_argv(argv):
     return _parse_opts(opts)
 
 
+def _path_config(path):
+    if not path:
+        path = "privateer.json"
+    elif os.path.isdir(path):
+        path = os.path.join(path, "privateer.json")
+    if not os.path.exists(path):
+        msg = f"Did not find privateer configuration at '{path}'"
+        raise Exception(msg)
+    return path
+
+
 def _parse_opts(opts):
     if opts["--version"]:
         return Call(_show_version)
 
     dry_run = opts["--dry-run"]
     name = opts["--as"]
-    path_config = opts["--path"] or "privateer.json"
+    path_config = _path_config(opts["--path"])
     root_config = os.path.dirname(path_config)
     cfg = read_config(path_config)
     if opts["keygen"]:

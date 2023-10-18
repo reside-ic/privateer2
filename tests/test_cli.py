@@ -10,6 +10,7 @@ from privateer2.cli import (
     _find_identity,
     _parse_argv,
     _parse_opts,
+    _path_config,
     _show_version,
     main,
     pull,
@@ -275,3 +276,20 @@ def test_run_pull(monkeypatch):
     assert client.images.pull.call_count == 2
     assert client.images.pull.call_args_list[0] == call(image_client)
     assert client.images.pull.call_args_list[1] == call(image_server)
+
+
+def test_clean_path(tmp_path):
+    with pytest.raises(Exception, match="Did not find privateer configuration"):
+        with transient_working_directory(str(tmp_path)):
+            _path_config(None)
+    with pytest.raises(Exception, match="Did not find privateer configuration"):
+        _path_config(tmp_path)
+    with pytest.raises(Exception, match="Did not find privateer configuration"):
+        _path_config(tmp_path / "foo.json")
+    with pytest.raises(Exception, match="Did not find privateer configuration"):
+        _path_config("foo.json")
+    shutil.copy("example/simple.json", tmp_path / "privateer.json")
+    assert _path_config(str(tmp_path)) == str(tmp_path / "privateer.json")
+    assert _path_config("example/simple.json") == "example/simple.json"
+    with transient_working_directory(str(tmp_path)):
+        assert _path_config(None) == "privateer.json"

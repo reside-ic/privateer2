@@ -31,32 +31,32 @@ sed "s/alice.example.com/$(hostname)/" example/local.json > tmp/privateer.json
 Create a set of keys
 
 ```
-privateer2 --path tmp/privateer.json keygen --all
+privateer2 --path tmp keygen --all
 ```
 
 You could also do this individually like
 
 ```
-privateer2 --path tmp/privateer.json keygen alice
+privateer2 --path tmp keygen alice
 ```
 
 Set up the key volumes
 
 ```
-privateer2 --path tmp/privateer.json configure alice
-privateer2 --path tmp/privateer.json configure bob
+privateer2 --path tmp configure alice
+privateer2 --path tmp configure bob
 ```
 
 Start the server, as a background process
 
 ```
-privateer2 --path tmp/privateer.json --as=alice server start
+privateer2 --path tmp --as=alice server start
 ```
 
 Once `alice` is running, we can test this connection from `bob`:
 
 ```
-privateer2 --path tmp/privateer.json --as=bob check --connection
+privateer2 --path tmp --as=bob check --connection
 ```
 
 This command would be simpler to run if in the `tmp` directory, which would be the usual situation in a multi-machine setup
@@ -77,13 +77,13 @@ docker run -it --rm -v data:/data ubuntu bash -c "base64 /dev/urandom | head -c 
 We can now backup from `bob` to `alice` as:
 
 ```
-privateer2 --path tmp/privateer.json --as=bob backup data
+privateer2 --path tmp --as=bob backup data
 ```
 
 or see what commands you would need in order to try this yourself:
 
 ```
-privateer2 --path tmp/privateer.json --as=bob backup data --dry-run
+privateer2 --path tmp --as=bob backup data --dry-run
 ```
 
 Delete the volume
@@ -95,19 +95,19 @@ docker volume rm data
 We can now restore it:
 
 ```
-privateer2 --path tmp/privateer.json --as=bob restore data
+privateer2 --path tmp --as=bob restore data
 ```
 
 or see the commands to do this outselves:
 
 ```
-privateer2 --path tmp/privateer.json --as=bob restore data --dry-run
+privateer2 --path tmp --as=bob restore data --dry-run
 ```
 
 Tear down the server with
 
 ```
-privateer2 --path tmp/privateer.json --as=alice server stop
+privateer2 --path tmp --as=alice server stop
 ```
 
 ## Writing tests
