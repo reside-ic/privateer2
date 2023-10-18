@@ -1,4 +1,5 @@
 import pytest
+import vault_dev
 
 from privateer2.util import (
     container_if_exists,
@@ -6,6 +7,9 @@ from privateer2.util import (
     rand_str,
     volume_if_exists,
 )
+
+
+vault_dev.ensure_installed()
 
 
 @pytest.fixture
