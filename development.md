@@ -17,11 +17,7 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_TOKEN=$(cat ~/.vault-token)
 ```
 
-within the hatch environment
-
-```
-privateer2 --path example/simple.json keygen --all
-```
+within the hatch environment before running any commands.
 
 ## Worked example
 
@@ -32,12 +28,23 @@ mkdir -p tmp
 sed "s/alice.example.com/$(hostname)/" example/local.json > tmp/privateer.json
 ```
 
-Set up the key volumes (and remove the file that would ordinarily be created)
+Create a set of keys
+
+```
+privateer2 --path tmp/privateer.json keygen --all
+```
+
+You could also do this individually like
+
+```
+privateer2 --path tmp/privateer.json keygen alice
+```
+
+Set up the key volumes
 
 ```
 privateer2 --path tmp/privateer.json configure alice
 privateer2 --path tmp/privateer.json configure bob
-rm -f tmp/.privateer_identity
 ```
 
 Start the server, as a background process
@@ -51,6 +58,14 @@ Once `alice` is running, we can test this connection from `bob`:
 ```
 privateer2 --path tmp/privateer.json --as=bob check --connection
 ```
+
+This command would be simpler to run if in the `tmp` directory, which would be the usual situation in a multi-machine setup
+
+```
+privateer2 check --connection
+```
+
+For all other commands below, you can drop the `--path` and `--as` arguments if you change directory.
 
 Create some random data within the `data` volume (this is the one that we want to send from `bob` to `alice`)
 
