@@ -86,12 +86,3 @@ def server_status(cfg, name):
         print(container.status)
     else:
         print("not running")
-
-
-@contextmanager
-def transient_server(cfg, name):
-    server_start(cfg, name)
-    try:
-        yield
-    finally:
-        server_stop(cfg, name)

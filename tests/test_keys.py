@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock, call
 import os
 import platform
 
@@ -5,8 +6,9 @@ import pytest
 import vault_dev
 
 import docker
+import privateer2.keys
 from privateer2.config import read_config
-from privateer2.keys import _keys_data, check, configure, keygen, keygen_all
+from privateer2.keys import _check_connections, _keys_data, check, configure, keygen, keygen_all
 from privateer2.server import transient_server
 from privateer2.util import string_from_volume
 
@@ -141,34 +143,94 @@ def test_error_on_check_if_unknown_machine():
             check(cfg, "eve")
 
 
-@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="firewall issues?")
-def test_can_test_connection(capsys, managed_docker):
+def test_can_check_connections(capsys, monkeypatch, managed_docker):
+    mock_docker = MagicMock()
+    monkeypatch.setattr(privateer2.keys, "docker", mock_docker)
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol_alice = managed_docker("volume")
-        cfg.servers[0].container = managed_docker("container")
-        cfg.servers[0].hostname = platform.node()
+        vol_keys_bob = managed_docker("volume")
+        cfg.servers[0].key_volume = managed_docker("volume")
+        cfg.clients[0].key_volume = vol_keys_bob
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        capsys.readouterr()  # flush previous output
+        _check_connections(cfg, cfg.clients[0])
+
+        out = capsys.readouterr().out
+        assert out == "checking connection to 'alice' (alice.example.com)...OK\n"
+        assert mock_docker.from_env.called
+        client = mock_docker.from_env.return_value
+        mount = mock_docker.types.Mount
+        assert mount.call_count == 1
+        assert mount.call_args_list[0] == call(
+            "/run/privateer", vol_keys_bob, type="volume", read_only=True
+        )
+        assert client.containers.run.call_count == 1
+        assert client.containers.run.call_args == call(
+            f"mrcide/privateer-client:{cfg.tag}",
+            mounts=[mount.return_value],
+            command=["ssh", "alice", "cat", "/run/privateer/name"],
+            remove=True,
+        )
+
+
+def test_can_report_connection_failure(capsys, monkeypatch, managed_docker):
+    mock_docker = MagicMock()
+    mock_docker.errors = docker.errors
+    err = docker.errors.ContainerError("nm", 1, "ssh", "img", b"the reason")
+    monkeypatch.setattr(privateer2.keys, "docker", mock_docker)
+    client = mock_docker.from_env.return_value
+    client.containers.run.side_effect = err
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol_keys_bob = managed_docker("volume")
+        cfg.servers[0].key_volume = managed_docker("volume")
+        cfg.clients[0].key_volume = vol_keys_bob
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        capsys.readouterr()  # flush previous output
+        _check_connections(cfg, cfg.clients[0])
+
+        out = capsys.readouterr().out
+        assert out == (
+            "checking connection to 'alice' (alice.example.com)...ERROR\n"
+            "the reason\n"
+        )
+        assert mock_docker.from_env.called
+        client = mock_docker.from_env.return_value
+        mount = mock_docker.types.Mount
+        assert mount.call_count == 1
+        assert mount.call_args_list[0] == call(
+            "/run/privateer", vol_keys_bob, type="volume", read_only=True
+        )
+        assert client.containers.run.call_count == 1
+        assert client.containers.run.call_args == call(
+            f"mrcide/privateer-client:{cfg.tag}",
+            mounts=[mount.return_value],
+            command=["ssh", "alice", "cat", "/run/privateer/name"],
+            remove=True,
+        )
+
+def test_only_test_connection_for_clients(monkeypatch, managed_docker):
+    mock_check = MagicMock()
+    monkeypatch.setattr(privateer2.keys, "_check_connections", mock_check)
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        cfg.servers[0].key_volume = managed_docker("volume")
         cfg.servers[0].data_volume = managed_docker("volume")
-        cfg.servers[0].key_volume = vol_alice
         cfg.clients[0].key_volume = managed_docker("volume")
         keygen_all(cfg)
         configure(cfg, "alice")
         configure(cfg, "bob")
-        capsys.readouterr()  # flush capture so far
-        prefix = f"checking connection to 'alice' ({platform.node()})..."
-
-        with transient_server(cfg, "alice"):
-            check(cfg, "bob", connection=True)
-        out_success = capsys.readouterr().out
-        assert f"{prefix}OK\n" in out_success
-
-        check(cfg, "bob", connection=True)
-        out_fail = capsys.readouterr().out
-        assert f"{prefix}ERROR\n" in out_fail
-
+        check(cfg, "alice")
+        assert mock_check.call_count == 0
+        check(cfg, "bob")
+        assert mock_check.call_count == 0
         check(cfg, "alice", connection=True)
-        out_server = capsys.readouterr().out
-        # Never reports on connections, as alice is a server
-        expected = f"Volume '{vol_alice}' looks configured as 'alice'\n"
-        assert out_server == expected
+        assert mock_check.call_count == 0
+        check(cfg, "bob", connection=True)
+        assert mock_check.call_count == 1
+        assert mock_check.call_args == call(cfg, cfg.clients[0])
