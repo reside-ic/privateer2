@@ -1,9 +1,12 @@
+import platform
+
 import pytest
 import vault_dev
 
 import docker
 from privateer2.config import read_config
 from privateer2.keys import _keys_data, check, configure, keygen, keygen_all
+from privateer2.server import transient_server
 from privateer2.util import string_from_volume
 
 
@@ -135,3 +138,35 @@ def test_error_on_check_if_unknown_machine():
         msg = "Invalid configuration 'eve', must be one of 'alice', 'bob'"
         with pytest.raises(Exception, match=msg):
             check(cfg, "eve")
+
+
+def test_can_test_connection(capsys, managed_docker):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol_alice = managed_docker("volume")
+        cfg.servers[0].container = managed_docker("container")
+        cfg.servers[0].hostname = platform.node()
+        cfg.servers[0].data_volume = managed_docker("volume")
+        cfg.servers[0].key_volume = vol_alice
+        cfg.clients[0].key_volume = managed_docker("volume")
+        keygen_all(cfg)
+        configure(cfg, "alice")
+        configure(cfg, "bob")
+        capsys.readouterr()  # flush capture so far
+        prefix = f"checking connection to 'alice' ({platform.node()})..."
+
+        with transient_server(cfg, "alice"):
+            check(cfg, "bob", connection=True)
+        out_success = capsys.readouterr().out
+        assert f"{prefix}OK\n" in out_success
+
+        check(cfg, "bob", connection=True)
+        out_fail = capsys.readouterr().out
+        assert f"{prefix}ERROR\n" in out_fail
+
+        check(cfg, "alice", connection=True)
+        out_server = capsys.readouterr().out
+        # Never reports on connections, as alice is a server
+        expected = f"Volume '{vol_alice}' looks configured as 'alice'\n"
+        assert out_server == expected

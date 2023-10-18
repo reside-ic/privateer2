@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import docker
 from privateer2.keys import check
 from privateer2.util import (
@@ -84,3 +86,12 @@ def server_status(cfg, name):
         print(container.status)
     else:
         print("not running")
+
+
+@contextmanager
+def transient_server(cfg, name):
+    server_start(cfg, name)
+    try:
+        yield
+    finally:
+        server_stop(cfg, name)

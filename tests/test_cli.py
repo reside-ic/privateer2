@@ -96,6 +96,7 @@ def test_can_parse_check(tmp_path):
     assert res.kwargs == {
         "cfg": read_config("example/simple.json"),
         "name": "alice",
+        "connection": False,
     }
     path = str(tmp_path / "privateer.json")
     _parse_argv(["check", "--path", path])
@@ -103,6 +104,11 @@ def test_can_parse_check(tmp_path):
     assert _parse_argv(["check", "--path", path, "--as", "alice"]) == res
     res.kwargs["name"] = "bob"
     assert _parse_argv(["check", "--path", path, "--as", "bob"]) == res
+    res.kwargs["connection"] = True
+    assert (
+        _parse_argv(["check", "--path", path, "--as", "bob", "--connection"])
+        == res
+    )
 
 
 def test_can_parse_server_start(tmp_path):

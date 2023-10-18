@@ -3,7 +3,7 @@
   privateer2 [options] pull
   privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
-  privateer2 [options] check
+  privateer2 [options] check [--connection]
   privateer2 [options] server (start | stop | status)
   privateer2 [options] backup <volume>
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
@@ -137,7 +137,8 @@ def _parse_opts(opts):
     else:
         name = _find_identity(opts["--as"], root_config)
         if opts["check"]:
-            return Call(check, cfg=cfg, name=name)
+            connection = opts["--connection"]
+            return Call(check, cfg=cfg, name=name, connection=connection)
         elif opts["server"]:
             if opts["start"]:
                 return Call(server_start, cfg=cfg, name=name, dry_run=dry_run)

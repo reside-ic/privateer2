@@ -58,7 +58,7 @@ def configure(cfg, name):
     string_to_volume(name, vol, "name", uid=0, gid=0)
 
 
-def check(cfg, name, *, quiet=False):
+def check(cfg, name, *, connection=False, quiet=False):
     machine = _machine_config(cfg, name)
     vol = machine.key_volume
     try:
@@ -72,6 +72,8 @@ def check(cfg, name, *, quiet=False):
         raise Exception(msg)
     if not quiet:
         print(f"Volume '{vol}' looks configured as '{name}'")
+    if connection and name in cfg.list_clients():
+        _check_connections(cfg, machine)
     return machine
 
 
@@ -139,3 +141,32 @@ def _machine_config(cfg, name):
     valid_str = ", ".join(f"'{x}'" for x in valid)
     msg = f"Invalid configuration '{name}', must be one of {valid_str}"
     raise Exception(msg)
+
+
+def _check_connections(cfg, machine):
+    image = f"mrcide/privateer-client:{cfg.tag}"
+    mounts = [
+        docker.types.Mount(
+            "/run/privateer", machine.key_volume, type="volume", read_only=True
+        )
+    ]
+    cl = docker.from_env()
+    result = {}
+    for server in cfg.servers:
+        print(
+            f"checking connection to '{server.name}' ({server.hostname})...",
+            end="",
+            flush=True,
+        )
+        try:
+            command = ["ssh", server.name, "cat", "/run/privateer/name"]
+            cl.containers.run(
+                image, mounts=mounts, command=command, remove=True
+            )
+            result[server.name] = True
+            print("OK")
+        except docker.errors.ContainerError as e:
+            result[server.name] = False
+            print("ERROR")
+            print(e.stderr.decode("utf-8").strip())
+    return result
