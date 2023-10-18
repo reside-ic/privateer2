@@ -214,7 +214,11 @@ def take_ownership(filename, directory, *, command_only=False):  # tar
         ]
     else:
         cl.containers.run(
-            "alpine", mounts=mounts, working_dir="/src", command=command
+            "alpine",
+            mounts=mounts,
+            working_dir="/src",
+            command=command,
+            remove=True,
         )
 
 

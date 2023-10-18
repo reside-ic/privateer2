@@ -7,14 +7,13 @@ import privateer2.restore
 from privateer2.config import read_config
 from privateer2.keys import configure, keygen_all
 from privateer2.restore import restore
-from privateer2.util import rand_str
 
 
-def test_can_print_instructions_to_run_restore(capsys):
+def test_can_print_instructions_to_run_restore(capsys, managed_docker):
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.clients[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "bob")
@@ -30,16 +29,15 @@ def test_can_print_instructions_to_run_restore(capsys):
             "rsync -av --delete alice:/privateer/bob/data/ /privateer/data/"
         )
         assert cmd in lines
-        docker.from_env().volumes.get(vol).remove()
 
 
-def test_can_run_restore(monkeypatch):
+def test_can_run_restore(monkeypatch, managed_docker):
     mock_run = MagicMock()
     monkeypatch.setattr(privateer2.restore, "run_docker_command", mock_run)
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.clients[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "bob")

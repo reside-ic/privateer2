@@ -4,7 +4,7 @@ import vault_dev
 import docker
 from privateer2.config import read_config
 from privateer2.keys import _keys_data, check, configure, keygen, keygen_all
-from privateer2.util import rand_str, string_from_volume
+from privateer2.util import string_from_volume
 
 
 def test_can_create_keys():
@@ -44,18 +44,22 @@ def test_can_generate_client_keys_data():
         )
 
 
-def test_can_unpack_keys_for_server():
+def test_can_unpack_keys_for_server(managed_docker):
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.servers[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "alice")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
+        name = managed_docker("container")
         res = client.containers.run(
-            "alpine", mounts=mounts, command=["ls", "/keys"], remove=True
+            "alpine",
+            mounts=mounts,
+            command=["ls", "/keys"],
+            name=name,
         )
         assert set(res.decode("UTF-8").strip().split("\n")) == {
             "authorized_keys",
@@ -64,21 +68,24 @@ def test_can_unpack_keys_for_server():
             "name",
         }
         assert string_from_volume(vol, "name") == "alice"
-        client.volumes.get(vol).remove()
 
 
-def test_can_unpack_keys_for_client():
+def test_can_unpack_keys_for_client(managed_docker):
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.clients[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "bob")
         client = docker.from_env()
         mounts = [docker.types.Mount("/keys", vol, type="volume")]
+        name = managed_docker("container")
         res = client.containers.run(
-            "alpine", mounts=mounts, command=["ls", "/keys"], remove=True
+            "alpine",
+            mounts=mounts,
+            command=["ls", "/keys"],
+            name=name,
         )
         assert set(res.decode("UTF-8").strip().split("\n")) == {
             "known_hosts",
@@ -93,14 +100,13 @@ def test_can_unpack_keys_for_client():
         cfg.servers[0].key_volume = vol
         with pytest.raises(Exception, match=msg):
             check(cfg, "alice")
-        client.volumes.get(vol).remove()
 
 
-def test_can_check_quietly(capsys):
+def test_can_check_quietly(capsys, managed_docker):
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.servers[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "alice")
@@ -112,11 +118,11 @@ def test_can_check_quietly(capsys):
         assert out_loud.out == f"Volume '{vol}' looks configured as 'alice'\n"
 
 
-def test_error_on_check_if_unconfigured():
+def test_error_on_check_if_unconfigured(managed_docker):
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()
-        vol = f"privateer_keys_{rand_str()}"
+        vol = managed_docker("volume")
         cfg.servers[0].key_volume = vol
         with pytest.raises(Exception, match="'alice' looks unconfigured"):
             check(cfg, "alice")

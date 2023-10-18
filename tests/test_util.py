@@ -64,9 +64,9 @@ def test_can_pull_image_if_required():
     assert image_exists("hello-world:latest")
 
 
-def test_can_tail_logs_from_container():
+def test_can_tail_logs_from_container(managed_docker):
     privateer2.util.ensure_image("alpine")
-    name = f"tmp_{privateer2.util.rand_str()}"
+    name = managed_docker("container")
     command = ["seq", "1", "10"]
     cl = docker.from_env()
     cl.containers.run("alpine", name=name, command=command)
@@ -92,8 +92,8 @@ def test_can_tail_logs_from_container():
     ]
 
 
-def test_can_run_long_command(capsys):
-    name = f"tmp_{privateer2.util.rand_str()}"
+def test_can_run_long_command(capsys, managed_docker):
+    name = managed_docker("container")
     command = ["seq", "1", "3"]
     privateer2.util.run_docker_command(
         "Test", "alpine", name=name, command=command
@@ -106,8 +106,8 @@ def test_can_run_long_command(capsys):
     assert lines[3:] == ["1", "2", "3"]
 
 
-def test_can_run_failing_command(capsys):
-    name = f"tmp_{privateer2.util.rand_str()}"
+def test_can_run_failing_command(capsys, managed_docker):
+    name = managed_docker("container")
     command = ["false"]
     msg = f"Test failed; see {name} logs for details"
     with pytest.raises(Exception, match=msg):
@@ -121,8 +121,8 @@ def test_can_run_failing_command(capsys):
     assert lines[2] == "An error occured! Container logs:"
 
 
-def test_can_detect_if_volume_exists():
-    name = f"tmp_{privateer2.util.rand_str()}"
+def test_can_detect_if_volume_exists(managed_docker):
+    name = managed_docker("volume")
     cl = docker.from_env()
     cl.volumes.create(name)
     assert privateer2.util.volume_exists(name)
@@ -130,11 +130,12 @@ def test_can_detect_if_volume_exists():
     assert not privateer2.util.volume_exists(name)
 
 
-def test_can_take_ownership_of_a_file(tmp_path):
+def test_can_take_ownership_of_a_file(tmp_path, managed_docker):
     cl = docker.from_env()
     mounts = [docker.types.Mount("/src", str(tmp_path), type="bind")]
     command = ["touch", "/src/newfile"]
-    cl.containers.run("ubuntu", mounts=mounts, command=command)
+    name = managed_docker("container")
+    cl.containers.run("ubuntu", name=name, mounts=mounts, command=command)
     path = tmp_path / "newfile"
     info = os.stat(path)
     assert info.st_uid == 0
