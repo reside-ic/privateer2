@@ -62,6 +62,31 @@ privateer2 restore <volume> [--server=NAME] [--source=NAME]
 
 where `--server` controls the server you are pulling from (if you have more than one configured) and `--source` controls the original machine that backed the data up (if more than one machine is pushing backups).
 
+## What's the problem anyway?
+
+[Docker volumes](https://docs.docker.com/storage/volumes/) are useful for abstracting away some persistant storage  for an application. They're much nicer to use than bind mounts because they don't pollute the host sytem with immovable files (docker containers often running as root or with a uid different to the user running docker).  The docker [docs describe some approaches to backup and restore](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes) but in practice this ignores many practical issues, especially when the volumes are large or off-site backup is important.
+
+We want to be able to syncronise a volume to another volume on a different machine; our setup looks like this:
+
+```
+bob                            alice
++-------------------+          +-----------------------+
+|                   |          |                       |
+| application       |          |                       |
+|  |                |          |                       |
+| volume1           |          |     volume2           |
+|  |                |   ssh/   |      |                |
+| privateer-client--=----------=---> privateer-server  |
+|  |                |  rsync   |      |                |
+| keys              |          |     keys              |
+|                   |          |                       |
++-------------------+          +-----------------------+
+```
+
+so in this case `bob` runs a privateer client which sends data over ssh+rsync to a server running on `alice`, eventually meaning that the data in `volume1` on `bob` is replicated to `volume2` on `alice`.  This process uses a set of ssh keys that each client and server will hold in a `keys` volume.  This means that they do not interact with any ssh systems on the host.  Note that if `alice` is also running sshd, this backup process will use a *second* ssh connection.
+
+In addition, we will support point-in-time backups on `alice`, creating `tar` files of the volume onto disk that can be easily restored onto any host.
+
 ## Installation
 
 ```console
