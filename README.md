@@ -7,15 +7,15 @@
 
 ## The idea
 
-We need a way of syncronising some docker volumes from a machine to some backup server, incrementally, using `rsync`. We previously used [`offen/docker-volume-backup`](https://github.com/offen/docker-volume-backup) to backup volumes in their entirity to another machine as a tar file but the space and time requirements made this hard to use in practice.
+We need a way of synchronising some docker volumes from a machine to some backup server, incrementally, using `rsync`. We previously used [`offen/docker-volume-backup`](https://github.com/offen/docker-volume-backup) to backup volumes in their entirety to another machine as a tar file but the space and time requirements made this hard to use in practice.
 
 ### The setup
 
-We assume some number of **server** machines -- these will recieve data, and some number of **client** machines -- these will send data to the server(s).  A client can back any number of volumes to any number of servers, and a server can recieve and serve any unmber of volumes to any number of clients.
+We assume some number of **server** machines -- these will receive data, and some number of **client** machines -- these will send data to the server(s).  A client can back any number of volumes to any number of servers, and a server can receive and serve any number of volumes to any number of clients.
 
-A typical topolgy for us would be that we would have a "production" machine which is backing up to one or more servers, and then some additional set of "staging" machines that recieve data from the servers, but which in practice never send any data.
+A typical framework for us would be that we would have a "production" machine which is backing up to one or more servers, and then some additional set of "staging" machines that receive data from the servers, which in practice never send any data.
 
-Because we are going to use ssh for transport, we assume existance of [HashiCorp Vault](https://www.vaultproject.io/) to store secrets.
+Because we are going to use ssh for transport, we assume existence of [HashiCorp Vault](https://www.vaultproject.io/) to store secrets.
 
 ### Configuration
 
@@ -60,13 +60,20 @@ Restoration is always manual
 privateer2 restore <volume> [--server=NAME] [--source=NAME]
 ```
 
-where `--server` controls the server you are pulling from (if you have more than one configured) and `--source` controls the original machine that backed the data up (if more than one machine is pushing backups).
+where `--server` controls the server you are pulling from (useful if you have more than one configured) and `--source` controls the original machine that backed the data up (if more than one machine is pushing backups).
+
+For example, if you are on a "staging" machine, connecting to the "backup" server and want to pull the "user_data" volume that was backed up from "production" machine called  you would type
+
+```
+privateer2 restore user_data --server=backup --source=production
+```
+
 
 ## What's the problem anyway?
 
-[Docker volumes](https://docs.docker.com/storage/volumes/) are useful for abstracting away some persistant storage  for an application. They're much nicer to use than bind mounts because they don't pollute the host sytem with immovable files (docker containers often running as root or with a uid different to the user running docker).  The docker [docs describe some approaches to backup and restore](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes) but in practice this ignores many practical issues, especially when the volumes are large or off-site backup is important.
+[Docker volumes](https://docs.docker.com/storage/volumes/) are useful for abstracting away some persistent storage for an application. They're much nicer to use than bind mounts because they don't pollute the host system with immovable files (docker containers often running as root or with a uid different to the user running docker).  The docker [docs](https://docs.docker.com/storage/volumes/#back-up-restore-or-migrate-data-volumes) describe some approaches to backup and restore but in practice this ignores many practical issues, especially when the volumes are large or off-site backup is important.
 
-We want to be able to syncronise a volume to another volume on a different machine; our setup looks like this:
+We want to be able to synchronise a volume to another volume on a different machine; our setup looks like this:
 
 ```
 bob                            alice
