@@ -47,7 +47,7 @@ replacing `<name>` with the name of the machine within either the `servers` or `
 ### Manual backup
 
 ```
-privateer backup <volume>
+privateer2 backup <volume> [--server=NAME]
 ```
 
 Add `--dry-run` to see the commands to run it yourself
