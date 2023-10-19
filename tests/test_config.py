@@ -117,7 +117,7 @@ def test_can_find_appropriate_source():
 def test_can_find_appropriate_source_if_local():
     cfg = read_config("example/simple.json")
     cfg.volumes[0].local = True
-    find_source(cfg, "data", None)
+    assert find_source(cfg, "data", None) is None
     msg = "'data' is a local source, so 'source' must be empty"
     with pytest.raises(Exception, match=msg):
         find_source(cfg, "data", "bob")

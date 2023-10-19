@@ -4,10 +4,13 @@
   privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
   privateer2 [options] check [--connection]
+
   privateer2 [options] backup <volume> [--server=NAME]
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
+
   privateer2 [options] export <volume> [--to-dir=PATH] [--source=NAME]
   privateer2 [options] import <tarfile> <volume>
+
   privateer2 [options] server (start | stop | status)
   privateer2 [options] schedule (start | stop | status)
 
@@ -24,7 +27,10 @@ Commentary:
   Note that the 'import' subcommand is quite different and does not
   interact with the configuration; it will reject options '--as' and
   '--path'. If 'volume' exists already, it will fail, so this is
-  fairly safe.
+  fairly safe.  If running export with '--source=local' then the
+  configuration is not read - this can be used anywhere to create a
+  tar file of a local volume, which is suitable for importing with
+  'import'.
 
   The server and schedule commands start background containers that
   run forever (with the 'start' option). Check in on them with
@@ -129,6 +135,15 @@ def _parse_opts(opts):
             import_tar,
             volume=opts["<volume>"],
             tarfile=opts["<tarfile>"],
+            dry_run=dry_run,
+        )
+    elif opts["export"] and opts["--source"] == "local":
+        _dont_use("--as", opts, "export --local")
+        _dont_use("--path", opts, "export --local")
+        return Call(
+            export_tar_local,
+            volume=opts["<volume>"],
+            to_dir=opts["--to-dir"],
             dry_run=dry_run,
         )
 

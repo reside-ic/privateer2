@@ -1,8 +1,8 @@
 import os
 
 import docker
-from privateer2.config import find_source
 from privateer2.check import check
+from privateer2.config import find_source
 from privateer2.util import (
     isotimestamp,
     mounts_str,
@@ -14,25 +14,44 @@ from privateer2.util import (
 
 def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
-    # TODO: we should be able to export a truely local volume too;
-    # this one probably can run a few ways.
-    #
     # TODO: check here that volume is either local, or that it is a
-    # backup target for anything.
+    # backup target for anything that we look after. If local, we need
+    # to use export_tar_local, and not this function.
     source = find_source(cfg, volume, source)
+    if not source:
+        return export_tar_local(volume, to_dir=to_dir, dry_run=dry_run)
+
     image = f"mrcide/privateer-client:{cfg.tag}"
-    if to_dir is None:
-        export_path = os.getcwd()
-    else:
-        export_path = os.path.abspath(to_dir)
     mounts = [
-        docker.types.Mount("/export", export_path, type="bind"),
+        docker.types.Mount(
+            "/export", os.path.abspath(to_dir or ""), type="bind"
+        ),
         docker.types.Mount(
             "/privateer", machine.data_volume, type="volume", read_only=True
         ),
     ]
     tarfile = f"{source}-{volume}-{isotimestamp()}.tar"
-    working_dir = f"/privateer/{source}/{volume}"
+    src = f"/privateer/{source}/{volume}"
+    _run_tar_create(image, mounts, src, tarfile, dry_run)
+
+
+def export_tar_local(volume, *, to_dir=None, dry_run=False):
+    if not volume_exists(volume):
+        msg = f"Volume '{volume}' does not exist"
+        raise Exception(msg)
+    image = "alpine"
+    mounts = [
+        docker.types.Mount(
+            "/export", os.path.abspath(to_dir or ""), type="bind"
+        ),
+        docker.types.Mount("/privateer", volume, type="volume", read_only=True),
+    ]
+    tarfile = f"{volume}-{isotimestamp()}.tar"
+    src = "/privateer"
+    _run_tar_create(image, mounts, src, tarfile, dry_run)
+
+
+def _run_tar_create(image, mounts, src, tarfile, dry_run=True):
     command = ["tar", "-cpvf", f"/export/{tarfile}", "."]
     if dry_run:
         cmd = [
@@ -41,7 +60,7 @@ def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
             "--rm",
             *mounts_str(mounts),
             "-w",
-            working_dir,
+            src,
             image,
             *command,
         ]
@@ -67,7 +86,7 @@ def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
             image,
             command=command,
             mounts=mounts,
-            working_dir=working_dir,
+            working_dir=src,
         )
         print("Taking ownership of file")
         take_ownership(tarfile, export_path)
@@ -80,6 +99,7 @@ def import_tar(volume, tarfile, *, dry_run=False):
         raise Exception(msg)
     if not os.path.exists(tarfile):
         msg = f"Input file '{tarfile}' does not exist"
+        raise Exception(msg)
 
     image = "alpine"
     tarfile = os.path.abspath(tarfile)
