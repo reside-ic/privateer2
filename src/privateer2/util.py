@@ -222,7 +222,7 @@ def take_ownership(filename, directory, *, command_only=False):  # tar
         )
 
 
-def run_docker_command(display, image, **kwargs):
+def run_container_with_command(display, image, **kwargs):
     ensure_image(image)
     client = docker.from_env()
     container = client.containers.run(image, **kwargs, detach=True)

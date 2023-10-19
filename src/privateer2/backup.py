@@ -1,6 +1,6 @@
 import docker
 from privateer2.keys import check
-from privateer2.util import match_value, mounts_str, run_docker_command
+from privateer2.util import match_value, mounts_str, run_container_with_command
 
 
 def backup(cfg, name, volume, *, server=None, dry_run=False):
@@ -38,7 +38,9 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
         print("in the directory /privateer/keys")
     else:
         print(f"Backing up '{volume}' from '{name}' to '{server}'")
-        run_docker_command("Backup", image, command=command, mounts=mounts)
+        run_container_with_command(
+            "Backup", image, command=command, mounts=mounts
+        )
         # TODO: also copy over some metadata at this point, via
         # ssh; probably best to write tiny utility in the client
         # container that will do this for us.

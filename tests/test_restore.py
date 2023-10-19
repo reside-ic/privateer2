@@ -34,7 +34,9 @@ def test_can_print_instructions_to_run_restore(capsys, managed_docker):
 
 def test_can_run_restore(monkeypatch, managed_docker):
     mock_run = MagicMock()
-    monkeypatch.setattr(privateer2.restore, "run_docker_command", mock_run)
+    monkeypatch.setattr(
+        privateer2.restore, "run_container_with_command", mock_run
+    )
     with vault_dev.Server(export_token=True) as server:
         cfg = read_config("example/simple.json")
         cfg.vault.url = server.url()

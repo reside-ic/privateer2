@@ -95,7 +95,7 @@ def test_can_tail_logs_from_container(managed_docker):
 def test_can_run_long_command(capsys, managed_docker):
     name = managed_docker("container")
     command = ["seq", "1", "3"]
-    privateer2.util.run_docker_command(
+    privateer2.util.run_container_with_command(
         "Test", "alpine", name=name, command=command
     )
     out = capsys.readouterr().out
@@ -111,7 +111,7 @@ def test_can_run_failing_command(capsys, managed_docker):
     command = ["false"]
     msg = f"Test failed; see {name} logs for details"
     with pytest.raises(Exception, match=msg):
-        privateer2.util.run_docker_command(
+        privateer2.util.run_container_with_command(
             "Test", "alpine", name=name, command=command
         )
     out = capsys.readouterr().out

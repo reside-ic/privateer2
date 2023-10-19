@@ -1,7 +1,7 @@
 import docker
 from privateer2.config import find_source
 from privateer2.keys import check
-from privateer2.util import match_value, mounts_str, run_docker_command
+from privateer2.util import match_value, mounts_str, run_container_with_command
 
 
 def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
@@ -38,4 +38,6 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
         print("in the directory /privateer/keys")
     else:
         print(f"Restoring '{volume}' from '{server}'")
-        run_docker_command("Restore", image, command=command, mounts=mounts)
+        run_container_with_command(
+            "Restore", image, command=command, mounts=mounts
+        )

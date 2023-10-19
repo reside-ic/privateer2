@@ -176,7 +176,10 @@ def test_can_stop_server(monkeypatch, managed_docker, capsys):
         server_stop(cfg, "alice")
         assert mock_container_if_exists.call_count == 3
         assert mock_container.stop.call_count == 1
-        assert capsys.readouterr().out == f"Container '{name}' for 'alice' does not exist\n"
+        assert (
+            capsys.readouterr().out
+            == f"Container '{name}' for 'alice' does not exist\n"
+        )
 
 
 def test_can_get_server_status(monkeypatch, capsys, managed_docker):
