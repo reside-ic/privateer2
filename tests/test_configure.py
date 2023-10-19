@@ -91,7 +91,7 @@ def test_can_write_schedule_for_client(managed_docker):
             "id_rsa.pub",
             "name",
             "config",
-            "yacron.yml"
+            "yacron.yml",
         }
         schedule = string_from_volume(vol, "yacron.yml")
         expected = generate_yacron_yaml(cfg, "bob")

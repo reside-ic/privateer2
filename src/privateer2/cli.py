@@ -4,9 +4,10 @@
   privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
   privateer2 [options] check [--connection]
-  privateer2 [options] server (start | stop | status)
   privateer2 [options] backup <volume> [--server=NAME]
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
+  privateer2 [options] server (start | stop | status)
+  privateer2 [options] schedule (start | stop | status)
 
 Options:
   --path=PATH  The path to the configuration, or directory with privateer.json
@@ -17,6 +18,10 @@ Commentary:
   In all the above '--as' (or <name>) refers to the name of the client
   or server being acted on; the machine we are generating keys for,
   configuring, checking, serving, backing up from or restoring to.
+
+  The server and schedule commands start background containers that
+  run forever (with the 'start' option). Check in on them with
+  'status' or stop them with 'stop'.
 """
 
 import os
@@ -31,6 +36,7 @@ from privateer2.config import read_config
 from privateer2.configure import configure
 from privateer2.keys import keygen, keygen_all
 from privateer2.restore import restore
+from privateer2.schedule import schedule_start, schedule_status, schedule_stop
 from privateer2.server import server_start, server_status, server_stop
 
 
@@ -134,13 +140,6 @@ def _parse_opts(opts):
         if opts["check"]:
             connection = opts["--connection"]
             return Call(check, cfg=cfg, name=name, connection=connection)
-        elif opts["server"]:
-            if opts["start"]:
-                return Call(server_start, cfg=cfg, name=name, dry_run=dry_run)
-            elif opts["stop"]:
-                return Call(server_stop, cfg=cfg, name=name)
-            else:
-                return Call(server_status, cfg=cfg, name=name)
         elif opts["backup"]:
             return Call(
                 backup,
@@ -160,6 +159,20 @@ def _parse_opts(opts):
                 source=opts["--source"],
                 dry_run=dry_run,
             )
+        elif opts["server"]:
+            if opts["start"]:
+                return Call(server_start, cfg=cfg, name=name, dry_run=dry_run)
+            elif opts["stop"]:
+                return Call(server_stop, cfg=cfg, name=name)
+            else:
+                return Call(server_status, cfg=cfg, name=name)
+        elif opts["schedule"]:
+            if opts["start"]:
+                return Call(schedule_start, cfg=cfg, name=name, dry_run=dry_run)
+            elif opts["stop"]:
+                return Call(schedule_stop, cfg=cfg, name=name)
+            else:
+                return Call(schedule_status, cfg=cfg, name=name)
         else:
             msg = "Invalid cli call -- privateer bug"
             raise Exception(msg)
