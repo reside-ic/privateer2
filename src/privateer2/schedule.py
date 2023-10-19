@@ -1,5 +1,5 @@
 import docker
-from privateer2.keys import check
+from privateer2.check import check
 from privateer2.service import service_start, service_status, service_stop
 from privateer2.util import unique
 

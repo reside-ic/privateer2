@@ -5,7 +5,8 @@ import vault_dev
 
 import privateer2.schedule
 from privateer2.config import read_config
-from privateer2.keys import configure, keygen_all
+from privateer2.configure import configure
+from privateer2.keys import keygen_all
 from privateer2.schedule import schedule_start, schedule_status, schedule_stop
 
 

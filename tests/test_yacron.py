@@ -23,6 +23,11 @@ def test_can_generate_yacron_yaml():
     assert res == expected
 
 
+def test_can_generate_empty_yacron_yaml():
+    cfg = read_config("example/simple.json")
+    assert generate_yacron_yaml(cfg, "alice") is None
+
+
 def test_can_add_web_interface():
     cfg = read_config("example/schedule.json")
     cfg.clients[0].schedule.jobs.pop()
