@@ -3,7 +3,7 @@ import pytest
 from privateer2.backup import backup_command
 from privateer2.config import read_config
 from privateer2.util import current_timezone_name
-from privateer2.yacron import generate_yacron_yaml, _validate_yacron_yaml
+from privateer2.yacron import _validate_yacron_yaml, generate_yacron_yaml
 
 
 def test_can_generate_yacron_yaml():
@@ -43,10 +43,12 @@ def test_can_add_web_interface():
 
 
 def test_can_check_yacron_config_is_valid():
-    valid = ["jobs:",
-             "- name: name",
-             "  command: command",
-             "  schedule: '@daily'"]
+    valid = [
+        "jobs:",
+        "- name: name",
+        "  command: command",
+        "  schedule: '@daily'",
+    ]
     assert _validate_yacron_yaml(valid)
 
     # Missing a key

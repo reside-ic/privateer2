@@ -69,9 +69,17 @@ def test_can_start_schedule(monkeypatch, managed_docker):
         assert mount.call_args_list[0] == call(
             "/privateer/keys", vol_keys, type="volume", read_only=True
         )
-        assert mount.call_args_list[1] == call(f"/privateer/volumes/{vol_data1}", vol_data1, type="volume", read_only=True)
+        assert mount.call_args_list[1] == call(
+            f"/privateer/volumes/{vol_data1}",
+            vol_data1,
+            type="volume",
+            read_only=True,
+        )
         assert mount.call_args_list[2] == call(
-            f"/privateer/volumes/{vol_data2}", vol_data2, type="volume", read_only=True
+            f"/privateer/volumes/{vol_data2}",
+            vol_data2,
+            type="volume",
+            read_only=True,
         )
         assert mock_start.call_count == 1
         assert mock_start.call_args == call(
@@ -93,7 +101,7 @@ def test_cant_schedule_clients_with_no_schedule(managed_docker):
         cfg.clients[0].key_volume = vol
         keygen_all(cfg)
         configure(cfg, "bob")
-        msg = f"A schedule is not defined in the configuration for 'bob'"
+        msg = "A schedule is not defined in the configuration for 'bob'"
         with pytest.raises(Exception, match=msg):
             schedule_start(cfg, "bob", dry_run=True)
 
