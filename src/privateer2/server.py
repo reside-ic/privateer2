@@ -76,7 +76,7 @@ def server_stop(cfg, name):
         if container.status == "running":
             container.stop()
     else:
-        print("Container '{machine.container}' for '{name}' does not exist")
+        print(f"Container '{machine.container}' for '{name}' does not exist")
 
 
 def server_status(cfg, name):

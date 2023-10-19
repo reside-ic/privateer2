@@ -137,7 +137,7 @@ def test_throws_if_container_already_exists(monkeypatch, managed_docker):
         mock_ce.assert_called_with(name)
 
 
-def test_can_stop_server(monkeypatch, managed_docker):
+def test_can_stop_server(monkeypatch, managed_docker, capsys):
     mock_container = MagicMock()
     mock_container.status = "running"
     mock_container_if_exists = MagicMock(return_value=mock_container)
@@ -157,22 +157,26 @@ def test_can_stop_server(monkeypatch, managed_docker):
         cfg.servers[0].container = name
         keygen_all(cfg)
         configure(cfg, "alice")
+        capsys.readouterr()  # flush previous output
 
         server_stop(cfg, "alice")
         assert mock_container_if_exists.call_count == 1
         assert mock_container_if_exists.call_args == call(name)
         assert mock_container.stop.call_count == 1
         assert mock_container.stop.call_args == call()
+        assert capsys.readouterr().out == ""
 
         mock_container.status = "exited"
         server_stop(cfg, "alice")
         assert mock_container_if_exists.call_count == 2
         assert mock_container.stop.call_count == 1
+        assert capsys.readouterr().out == ""
 
         mock_container_if_exists.return_value = None
         server_stop(cfg, "alice")
         assert mock_container_if_exists.call_count == 3
         assert mock_container.stop.call_count == 1
+        assert capsys.readouterr().out == f"Container '{name}' for 'alice' does not exist\n"
 
 
 def test_can_get_server_status(monkeypatch, capsys, managed_docker):
