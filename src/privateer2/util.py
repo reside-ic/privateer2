@@ -9,7 +9,19 @@ import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
+import tzlocal
+
 import docker
+
+
+def unique(x):
+    seen = set()
+    ret = []
+    for el in x:
+        if el not in seen:
+            ret.append(el)
+            seen.add(el)
+    return ret
 
 
 def string_to_volume(text, volume, path, **kwargs):
@@ -262,3 +274,7 @@ def transient_working_directory(path):
         yield
     finally:
         os.chdir(origin)
+
+
+def current_timezone_name():
+    return str(tzlocal.get_localzone())

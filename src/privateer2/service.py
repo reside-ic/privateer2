@@ -37,6 +37,7 @@ def service_start(
         cmd = service_command(
             image, container_name, mounts=mounts, ports=ports, command=command
         )
+        # TODO: fix this name
         print("Command to manually launch server:")
         print()
         print(f"  {' '.join(cmd)}")

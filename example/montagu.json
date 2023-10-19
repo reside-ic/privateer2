@@ -18,7 +18,18 @@
         },
         {
             "name": "production2",
-            "backup": ["montagu_orderly_volume"]
+            "backup": ["montagu_orderly_volume"],
+            "schedule": {
+                "container": "privateer_cron",
+                "volume": "privateer_schedule",
+                "jobs": [
+                    {
+                        "server": "annex2",
+                        "volume": "montagu_orderly_volume",
+                        "schedule": "@daily"
+                    }
+                ]
+            }
         },
         {
             "name": "science"

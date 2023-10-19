@@ -29,7 +29,9 @@ dependencies = [
     "docker",
     "docopt",
     "hvac",
-    "pydantic"
+    "pydantic",
+    "tzlocal",
+    "yacron"
 ]
 
 [project.urls]
