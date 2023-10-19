@@ -14,7 +14,17 @@
     "clients": [
         {
             "name": "production",
-            "backup": ["montagu_orderly_volume"]
+            "backup": ["montagu_orderly_volume"],
+            "schedule": {
+                "port": 8080,
+                "jobs": [
+                    {
+                        "server": "annex2",
+                        "volume": "montagu_orderly_volume",
+                        "schedule": "@daily"
+                    }
+                ]
+            }
         },
         {
             "name": "production2",
