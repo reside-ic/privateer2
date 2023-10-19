@@ -24,27 +24,38 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+    "cryptography>=3.1",
+    "docker",
+    "docopt",
+    "hvac",
+    "pydantic"
+]
 
 [project.urls]
 Documentation = "https://github.com/unknown/privateer2#readme"
 Issues = "https://github.com/unknown/privateer2/issues"
 Source = "https://github.com/unknown/privateer2"
 
+[project.scripts]
+privateer2 = "privateer2.cli:main"
+
 [tool.hatch.version]
 path = "src/privateer2/__about__.py"
 
 [tool.hatch.envs.default]
+python = "python3"
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "vault-dev>=0.1.1"
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
 test-cov = "coverage run -m pytest {args:tests}"
 cov-report = [
   "- coverage combine",
-  "coverage report",
+  "coverage report --show-missing",
 ]
 cov = [
   "test-cov",
@@ -87,12 +98,12 @@ all = [
 
 [tool.black]
 target-version = ["py37"]
-line-length = 120
+line-length = 80
 skip-string-normalization = true
 
 [tool.ruff]
 target-version = "py37"
-line-length = 120
+line-length = 80
 select = [
   "A",
   "ARG",
@@ -129,6 +140,10 @@ ignore = [
   "S105", "S106", "S107",
   # Ignore complexity
   "C901", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+  # Let us use random
+  "S311",
+  # Let us use print
+  "T201"
 ]
 unfixable = [
   # Don't touch unused imports

@@ -1,0 +1,9 @@
+*.pyc
+__pycache__
+dist/
+.coverage
+coverage.xml
+*.tar
+.privateer_identity
+tmp/
+.coverage.*
