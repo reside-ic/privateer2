@@ -7,6 +7,7 @@ from privateer2.config import read_config
 from privateer2.configure import configure
 from privateer2.keys import keygen_all
 from privateer2.util import string_from_volume
+from privateer2.yacron import generate_yacron_yaml
 
 
 def test_can_unpack_keys_for_server(managed_docker):
@@ -92,9 +93,6 @@ def test_can_write_schedule_for_client(managed_docker):
             "config",
             "yacron.yml"
         }
-        # assert string_from_volume(vol, "name") == "bob"
-        # assert check(cfg, "bob").key_volume == vol
-        # msg = "Configuration is for 'bob', not 'alice'"
-        # cfg.servers[0].key_volume = vol
-        # with pytest.raises(Exception, match=msg):
-        #     check(cfg, "alice")
+        schedule = string_from_volume(vol, "yacron.yml")
+        expected = generate_yacron_yaml(cfg, "bob")
+        assert schedule == "".join([x + "\n" for x in expected])

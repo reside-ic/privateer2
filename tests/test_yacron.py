@@ -23,9 +23,14 @@ def test_can_generate_yacron_yaml():
     assert res == expected
 
 
-def test_can_generate_empty_yacron_yaml():
+def test_can_generate_empty_yacron_yaml_for_server():
     cfg = read_config("example/simple.json")
     assert generate_yacron_yaml(cfg, "alice") is None
+
+
+def test_can_generate_empty_yacron_yaml_for_client_with_no_schedule():
+    cfg = read_config("example/simple.json")
+    assert generate_yacron_yaml(cfg, "bob") is None
 
 
 def test_can_add_web_interface():

@@ -10,7 +10,7 @@ from privateer2.util import current_timezone_name
 
 def generate_yacron_yaml(cfg, name):
     machine = cfg.machine_config(name)
-    if not isinstance(cfg, Client) or not machine.schedule:
+    if not isinstance(machine, Client) or not machine.schedule:
         return None
 
     ret = ["defaults:", f'  timezone: "{current_timezone_name()}"']
