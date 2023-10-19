@@ -3,25 +3,29 @@ from privateer2.keys import check
 from privateer2.util import match_value, mounts_str, run_container_with_command
 
 
+def backup_command(name, volume, server):
+    return [
+        "rsync",
+        "-av",
+        "--delete",
+        f"/privateer/{volume}",
+        f"{server}:/privateer/volumes/{name}",
+    ]
+
+
 def backup(cfg, name, volume, *, server=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
     server = match_value(server, cfg.list_servers(), "server")
     volume = match_value(volume, machine.backup, "volume")
     image = f"mrcide/privateer-client:{cfg.tag}"
-    src_mount = f"/privateer/{volume}"
+    src = f"/privateer/{volume}"
     mounts = [
         docker.types.Mount(
             "/privateer/keys", machine.key_volume, type="volume", read_only=True
         ),
-        docker.types.Mount(src_mount, volume, type="volume", read_only=True),
+        docker.types.Mount(src, volume, type="volume", read_only=True),
     ]
-    command = [
-        "rsync",
-        "-av",
-        "--delete",
-        src_mount,
-        f"{server}:/privateer/volumes/{name}",
-    ]
+    command = backup_command(name, volume, server)
     if dry_run:
         cmd = ["docker", "run", "--rm", *mounts_str(mounts), image, *command]
         print("Command to manually run backup:")

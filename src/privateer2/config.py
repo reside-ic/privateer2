@@ -57,6 +57,15 @@ class Config(BaseModel):
     def list_clients(self):
         return [x.name for x in self.clients]
 
+    def machine_config(self, name):
+        for el in self.servers + self.clients:
+            if el.name == name:
+                return el
+        valid = self.list_servers() + self.list_clients()
+        valid_str = ", ".join(f"'{x}'" for x in valid)
+        msg = f"Invalid configuration '{name}', must be one of {valid_str}"
+        raise Exception(msg)
+
 
 # this could be put elsewhere; we find the plausible sources (original
 # clients) that backed up a source to any server.

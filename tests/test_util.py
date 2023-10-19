@@ -161,3 +161,29 @@ def test_can_take_ownership_of_a_file(tmp_path, managed_docker):
     info = os.stat(path)
     assert info.st_uid == uid
     assert info.st_gid == gid
+
+
+def test_can_format_ports():
+    ports_str = privateer2.util.ports_str
+    assert ports_str(None) == []
+    assert ports_str({"22/tcp": 10022}) == ["-p", "10022:22"]
+    assert ports_str({"22": 10022}) == ["-p", "10022:22"]
+
+
+def test_can_test_if_container_exists(managed_docker):
+    name = managed_docker("container")
+    assert not privateer2.util.container_exists(name)
+    assert privateer2.util.container_if_exists(name) is None
+    privateer2.util.ensure_image("alpine")
+    cl = docker.from_env()
+    container = cl.containers.create("alpine", name=name)
+    assert privateer2.util.container_exists(name)
+    assert privateer2.util.container_if_exists(name) == container
+
+
+def test_can_copy_string_into_volume(managed_docker):
+    vol = managed_docker("volume")
+    privateer2.util.string_to_volume("hello", vol, "test")
+    assert privateer2.util.string_from_volume(vol, "test") == "hello"
+    privateer2.util.string_to_volume(["hello", "world"], vol, "test")
+    assert privateer2.util.string_from_volume(vol, "test") == "hello\nworld\n"

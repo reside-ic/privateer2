@@ -2,6 +2,7 @@ import datetime
 import os
 import os.path
 import random
+import re
 import string
 import tarfile
 import tempfile
@@ -12,6 +13,8 @@ import docker
 
 
 def string_to_volume(text, volume, path, **kwargs):
+    if isinstance(text, list):
+        text = "".join(x + "\n" for x in text)
     ensure_image("alpine")
     dest = Path("/dest")
     mounts = [docker.types.Mount(str(dest), volume, type="volume")]
@@ -165,8 +168,9 @@ def log_tail(container, n):
 
 def mounts_str(mounts):
     ret = []
-    for m in mounts:
-        ret += mount_str(m)
+    if mounts:
+        for m in mounts:
+            ret += mount_str(m)
     return ret
 
 
@@ -175,6 +179,16 @@ def mount_str(mount):
     if mount["ReadOnly"]:
         ret += ":ro"
     return ["-v", ret]
+
+
+# This could be improved, there are more formats possible here.
+def ports_str(ports):
+    ret = []
+    if ports:
+        for k, v in ports.items():
+            ret.append("-p")
+            ret.append(f"{v}:{re.sub('/.+', '', k)}")
+    return ret
 
 
 def match_value(given, valid, name):

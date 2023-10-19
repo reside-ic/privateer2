@@ -28,7 +28,7 @@ def _keygen(cfg, name, vault):
 def configure(cfg, name):
     cl = docker.from_env()
     data = _keys_data(cfg, name)
-    vol = _machine_config(cfg, name).key_volume
+    vol = cfg.machine_config(name).key_volume
     cl.volumes.create(vol)
     print(f"Copying keypair for '{name}' to volume '{vol}'")
     string_to_volume(
@@ -59,7 +59,7 @@ def configure(cfg, name):
 
 
 def check(cfg, name, *, connection=False, quiet=False):
-    machine = _machine_config(cfg, name)
+    machine = cfg.machine_config(name)
     vol = machine.key_volume
     try:
         docker.from_env().volumes.get(vol)
@@ -131,16 +131,6 @@ def _keys_data(cfg, name):
         ret["known_hosts"] = "".join(known_hosts)
         ret["config"] = "".join(config)
     return ret
-
-
-def _machine_config(cfg, name):
-    for el in cfg.servers + cfg.clients:
-        if el.name == name:
-            return el
-    valid = cfg.list_servers() + cfg.list_clients()
-    valid_str = ", ".join(f"'{x}'" for x in valid)
-    msg = f"Invalid configuration '{name}', must be one of {valid_str}"
-    raise Exception(msg)
 
 
 def _check_connections(cfg, machine):
