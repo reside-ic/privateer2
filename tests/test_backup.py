@@ -6,7 +6,8 @@ import docker
 import privateer2.server
 from privateer2.backup import backup
 from privateer2.config import read_config
-from privateer2.keys import configure, keygen_all
+from privateer2.configure import configure
+from privateer2.keys import keygen_all
 
 
 def test_can_print_instructions_to_run_backup(capsys, managed_docker):

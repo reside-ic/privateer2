@@ -1,6 +1,6 @@
 import docker
+from privateer2.check import check
 from privateer2.config import find_source
-from privateer2.keys import check
 from privateer2.util import match_value, mounts_str, run_container_with_command
 
 
