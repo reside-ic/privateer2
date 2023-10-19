@@ -1,9 +1,6 @@
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import docker
-from privateer2.util import string_from_volume
-
 
 def keygen(cfg, name):
     _keygen(cfg, name, cfg.vault.client())
@@ -53,25 +50,6 @@ def _keygen(cfg, name, vault):
     _r = vault.secrets.kv.v1.create_or_update_secret(path, secret=data)
 
 
-def check(cfg, name, *, connection=False, quiet=False):
-    machine = cfg.machine_config(name)
-    vol = machine.key_volume
-    try:
-        docker.from_env().volumes.get(vol)
-    except docker.errors.NotFound:
-        msg = f"'{name}' looks unconfigured"
-        raise Exception(msg) from None
-    found = string_from_volume(vol, "name")
-    if found != name:
-        msg = f"Configuration is for '{found}', not '{name}'"
-        raise Exception(msg)
-    if not quiet:
-        print(f"Volume '{vol}' looks configured as '{name}'")
-    if connection and name in cfg.list_clients():
-        _check_connections(cfg, machine)
-    return machine
-
-
 def _get_pubkeys(vault, prefix, nms):
     return {
         nm: vault.secrets.kv.v1.read_secret(f"{prefix}/{nm}")["data"]["public"]
@@ -98,32 +76,3 @@ def _create_keypair():
     )
 
     return {"public": public, "private": private}
-
-
-def _check_connections(cfg, machine):
-    image = f"mrcide/privateer-client:{cfg.tag}"
-    mounts = [
-        docker.types.Mount(
-            "/privateer/keys", machine.key_volume, type="volume", read_only=True
-        )
-    ]
-    cl = docker.from_env()
-    result = {}
-    for server in cfg.servers:
-        print(
-            f"checking connection to '{server.name}' ({server.hostname})...",
-            end="",
-            flush=True,
-        )
-        try:
-            command = ["ssh", server.name, "cat", "/privateer/keys/name"]
-            cl.containers.run(
-                image, mounts=mounts, command=command, remove=True
-            )
-            result[server.name] = True
-            print("OK")
-        except docker.errors.ContainerError as e:
-            result[server.name] = False
-            print("ERROR")
-            print(e.stderr.decode("utf-8").strip())
-    return result

@@ -2,9 +2,10 @@ import pytest
 import vault_dev
 
 import docker
+from privateer2.check import check
 from privateer2.config import read_config
 from privateer2.configure import configure
-from privateer2.keys import check, keygen_all
+from privateer2.keys import keygen_all
 from privateer2.util import string_from_volume
 
 
