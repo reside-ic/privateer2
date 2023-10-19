@@ -4,7 +4,8 @@ import vault_dev
 
 import privateer2.server
 from privateer2.config import read_config
-from privateer2.keys import configure, keygen_all
+from privateer2.configure import configure
+from privateer2.keys import keygen_all
 from privateer2.server import server_start, server_status, server_stop
 
 

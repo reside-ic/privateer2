@@ -2,7 +2,7 @@ from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 import docker
-from privateer2.util import string_from_volume, string_to_volume
+from privateer2.util import string_from_volume
 
 
 def keygen(cfg, name):
@@ -15,6 +15,34 @@ def keygen_all(cfg):
         _keygen(cfg, name, vault)
 
 
+def keys_data(cfg, name):
+    vault = cfg.vault.client()
+    response = vault.secrets.kv.v1.read_secret(f"{cfg.vault.prefix}/{name}")
+    ret = {
+        "name": name,
+        **response["data"],
+        "authorized_keys": None,
+        "known_hosts": None,
+        "config": None,
+    }
+    if name in cfg.list_servers():
+        keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_clients())
+        ret["authorized_keys"] = "".join([f"{v}\n" for v in keys.values()])
+    if name in cfg.list_clients():
+        keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_servers())
+        known_hosts = []
+        config = []
+        for s in cfg.servers:
+            known_hosts.append(f"[{s.hostname}]:{s.port} {keys[s.name]}\n")
+            config.append(f"Host {s.name}\n")
+            config.append("  User root\n")
+            config.append(f"  Port {s.port}\n")
+            config.append(f"  HostName {s.hostname}\n")
+        ret["known_hosts"] = "".join(known_hosts)
+        ret["config"] = "".join(config)
+    return ret
+
+
 def _keygen(cfg, name, vault):
     data = _create_keypair()
     path = f"{cfg.vault.prefix}/{name}"
@@ -23,39 +51,6 @@ def _keygen(cfg, name, vault):
     # They do not indicate if this will error if the write fails though.
     print(f"Writing keypair for {name}")
     _r = vault.secrets.kv.v1.create_or_update_secret(path, secret=data)
-
-
-def configure(cfg, name):
-    cl = docker.from_env()
-    data = _keys_data(cfg, name)
-    vol = cfg.machine_config(name).key_volume
-    cl.volumes.create(vol)
-    print(f"Copying keypair for '{name}' to volume '{vol}'")
-    string_to_volume(
-        data["public"], vol, "id_rsa.pub", uid=0, gid=0, mode=0o644
-    )
-    string_to_volume(data["private"], vol, "id_rsa", uid=0, gid=0, mode=0o600)
-    if data["authorized_keys"]:
-        print("Authorising public keys")
-        string_to_volume(
-            data["authorized_keys"],
-            vol,
-            "authorized_keys",
-            uid=0,
-            gid=0,
-            mode=0o600,
-        )
-    if data["known_hosts"]:
-        print("Recognising servers")
-        string_to_volume(
-            data["known_hosts"], vol, "known_hosts", uid=0, gid=0, mode=0o600
-        )
-    if data["config"]:
-        print("Adding ssh config")
-        string_to_volume(
-            data["config"], vol, "config", uid=0, gid=0, mode=0o600
-        )
-    string_to_volume(name, vol, "name", uid=0, gid=0)
 
 
 def check(cfg, name, *, connection=False, quiet=False):
@@ -103,34 +98,6 @@ def _create_keypair():
     )
 
     return {"public": public, "private": private}
-
-
-def _keys_data(cfg, name):
-    vault = cfg.vault.client()
-    response = vault.secrets.kv.v1.read_secret(f"{cfg.vault.prefix}/{name}")
-    ret = {
-        "name": name,
-        **response["data"],
-        "authorized_keys": None,
-        "known_hosts": None,
-        "config": None,
-    }
-    if name in cfg.list_servers():
-        keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_clients())
-        ret["authorized_keys"] = "".join([f"{v}\n" for v in keys.values()])
-    if name in cfg.list_clients():
-        keys = _get_pubkeys(vault, cfg.vault.prefix, cfg.list_servers())
-        known_hosts = []
-        config = []
-        for s in cfg.servers:
-            known_hosts.append(f"[{s.hostname}]:{s.port} {keys[s.name]}\n")
-            config.append(f"Host {s.name}\n")
-            config.append("  User root\n")
-            config.append(f"  Port {s.port}\n")
-            config.append(f"  HostName {s.hostname}\n")
-        ret["known_hosts"] = "".join(known_hosts)
-        ret["config"] = "".join(config)
-    return ret
 
 
 def _check_connections(cfg, machine):

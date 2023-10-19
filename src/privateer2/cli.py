@@ -27,7 +27,8 @@ import docker
 import privateer2.__about__ as about
 from privateer2.backup import backup
 from privateer2.config import read_config
-from privateer2.keys import check, configure, keygen, keygen_all
+from privateer2.configure import configure
+from privateer2.keys import check, keygen, keygen_all
 from privateer2.restore import restore
 from privateer2.server import server_start, server_status, server_stop
 
