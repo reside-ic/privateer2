@@ -47,7 +47,7 @@ privateer2 --path tmp configure alice
 privateer2 --path tmp configure bob
 ```
 
-Start the server, as a background process
+Start the server, as a background process (note that if these were on different machine the `privateer2 configure <name>` step would generate the `.privateer_identity` automatically so the `--as` argument is not needed)
 
 ```
 privateer2 --path tmp --as=alice server start
@@ -59,7 +59,7 @@ Once `alice` is running, we can test this connection from `bob`:
 privateer2 --path tmp --as=bob check --connection
 ```
 
-This command would be simpler to run if in the `tmp` directory, which would be the usual situation in a multi-machine setup
+This command would be simpler to run if we are in the `tmp` directory, which would be the usual situation in a multi-machine setup
 
 ```
 privateer2 check --connection
