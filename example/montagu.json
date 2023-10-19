@@ -20,8 +20,7 @@
             "name": "production2",
             "backup": ["montagu_orderly_volume"],
             "schedule": {
-                "container": "privateer_cron",
-                "volume": "privateer_schedule",
+                "port": 8080,
                 "jobs": [
                     {
                         "server": "annex2",

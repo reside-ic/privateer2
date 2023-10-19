@@ -19,7 +19,7 @@ class ScheduleJob(BaseModel):
 
 
 class Schedule(BaseModel):
-    port: Optional[int]
+    port: Optional[int] = None
     container: str = "privateer_scheduler"
     jobs: List[ScheduleJob]
 
