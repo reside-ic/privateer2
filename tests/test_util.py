@@ -187,3 +187,9 @@ def test_can_copy_string_into_volume(managed_docker):
     assert privateer2.util.string_from_volume(vol, "test") == "hello"
     privateer2.util.string_to_volume(["hello", "world"], vol, "test")
     assert privateer2.util.string_from_volume(vol, "test") == "hello\nworld\n"
+
+
+def test_can_uniquify_list():
+    assert privateer2.util.unique([]) == []
+    assert privateer2.util.unique([1, 2, 3]) == [1, 2, 3]
+    assert privateer2.util.unique([3, 2, 1, 2, 3]) == [3, 2, 1]

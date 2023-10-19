@@ -9,9 +9,6 @@ from privateer2.util import current_timezone_name
 
 def generate_yacron_yaml(cfg, name):
     machine = cfg.machine_config(name)
-    if not machine.schedule:
-        msg = "{type(machine).__name__} '{name}' does not have a schedule"
-        raise Exception(msg)
     ret = ["defaults:", f'  timezone: "{current_timezone_name()}"']
 
     if machine.schedule.port:
@@ -26,16 +23,18 @@ def generate_yacron_yaml(cfg, name):
         ret.append(f'  - name: "{job_name}"')
         ret.append(f'    command: "{cmd}"')
         ret.append(f'    schedule: "{job.schedule}"')
+
+    _validate_yacron_yaml(ret)
     return ret
 
 
-def validate_yacron_yaml(text):
-    if isinstance(text, list):
-        text = "".join(f"{x}\n" for x in text)
+def _validate_yacron_yaml(text):
+    text = "".join(f"{x}\n" for x in text)
     try:
         fd, tmp = tempfile.mkstemp(text=True)
         with os.fdopen(fd, "w") as f:
             f.write(text)
         yacron.config.parse_config(tmp)
+        return True
     finally:
         os.remove(tmp)

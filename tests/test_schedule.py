@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, call
 
+import pytest
 import vault_dev
 
 import privateer2.schedule
@@ -82,6 +83,19 @@ def test_can_start_schedule(monkeypatch, managed_docker):
             command=["yacron", "-c", "/privateer/keys/yacron.yml"],
             dry_run=False,
         )
+
+
+def test_cant_schedule_clients_with_no_schedule(managed_docker):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = managed_docker("volume")
+        cfg.clients[0].key_volume = vol
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        msg = f"A schedule is not defined in the configuration for 'bob'"
+        with pytest.raises(Exception, match=msg):
+            schedule_start(cfg, "bob", dry_run=True)
 
 
 def test_can_stop_schedule(monkeypatch):
