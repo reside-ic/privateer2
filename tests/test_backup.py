@@ -27,7 +27,8 @@ def test_can_print_instructions_to_run_backup(capsys, managed_docker):
             "  docker run --rm "
             f"-v {vol}:/privateer/keys:ro -v data:/privateer/volumes/data:ro "
             f"mrcide/privateer-client:{cfg.tag} "
-            "rsync -av --delete /privateer/volumes/data alice:/privateer/volumes/bob"
+            "rsync -av --delete /privateer/volumes/data "
+            "alice:/privateer/volumes/bob"
         )
         assert cmd in lines
 

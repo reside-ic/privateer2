@@ -61,7 +61,10 @@ def test_can_run_restore(monkeypatch, managed_docker):
                 "/privateer/keys", vol, type="volume", read_only=True
             ),
             docker.types.Mount(
-                "/privateer/volumes/data", "data", type="volume", read_only=False
+                "/privateer/volumes/data",
+                "data",
+                type="volume",
+                read_only=False,
             ),
         ]
         assert mock_run.call_count == 1
@@ -127,8 +130,9 @@ def test_restore_from_alternative_source(capsys, managed_docker):
         assert "Command to manually run restore:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol_dan}:/privateer/keys:ro -v other:/privateer/volumes/other"
-            f" mrcide/privateer-client:{cfg.tag} "
+            f"-v {vol_dan}:/privateer/keys:ro "
+            "-v other:/privateer/volumes/other "
+            f"mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete carol:/privateer/local/other/ "
             "/privateer/volumes/other/"
         )
