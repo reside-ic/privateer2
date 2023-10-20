@@ -240,6 +240,20 @@ def test_can_parse_export(tmp_path):
     }
 
 
+def test_can_parse_local_export():
+    res = _parse_argv(["export", "v", "--source=local"])
+    assert res.target == privateer2.cli.export_tar_local
+    assert res.kwargs == {
+        "volume": "v",
+        "to_dir": None,
+        "dry_run": False,
+    }
+    with pytest.raises(Exception, match="Don't use '--as'"):
+        _parse_argv(["export", "v", "--source=local", "--as=bob"])
+    with pytest.raises(Exception, match="Don't use '--path'"):
+        _parse_argv(["export", "v", "--source=local", "--path=p"])
+
+
 def test_error_if_unknown_identity(tmp_path):
     shutil.copy("example/simple.json", tmp_path / "privateer.json")
     msg = "Can't determine identity; did you forget to configure"
