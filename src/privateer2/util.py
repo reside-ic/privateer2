@@ -232,6 +232,7 @@ def take_ownership(filename, directory, *, command_only=False):  # tar
         return [
             "docker",
             "run",
+            "--rm",
             *mounts_str(mounts),
             "-w",
             "/src",

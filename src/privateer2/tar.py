@@ -4,10 +4,9 @@ import docker
 from privateer2.check import check
 from privateer2.config import find_source
 from privateer2.util import (
-    ensure_image,
     isotimestamp,
     mounts_str,
-    run_docker_command,
+    run_container_with_command,
     take_ownership,
     volume_exists,
 )
@@ -15,83 +14,35 @@ from privateer2.util import (
 
 def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
-    # TODO: check here that volume is either local, or that it is a
-    # backup target for anything that we look after. If local, we need
-    # to use export_tar_local, and not this function.
     source = find_source(cfg, volume, source)
     if not source:
         return export_tar_local(volume, to_dir=to_dir, dry_run=dry_run)
 
-    image = f"mrcide/privateer-client:{cfg.tag}"
+    path = os.path.abspath(to_dir or "")
     mounts = [
-        docker.types.Mount(
-            "/export", os.path.abspath(to_dir or ""), type="bind"
-        ),
+        docker.types.Mount("/export", path, type="bind"),
         docker.types.Mount(
             "/privateer", machine.data_volume, type="volume", read_only=True
         ),
     ]
     tarfile = f"{source}-{volume}-{isotimestamp()}.tar"
     src = f"/privateer/{source}/{volume}"
-    _run_tar_create(image, mounts, src, tarfile, dry_run)
+    _run_tar_create(mounts, src, path, tarfile, dry_run)
 
 
 def export_tar_local(volume, *, to_dir=None, dry_run=False):
     if not volume_exists(volume):
         msg = f"Volume '{volume}' does not exist"
         raise Exception(msg)
-    image = "alpine"
+
+    path = os.path.abspath(to_dir or "")
     mounts = [
-        docker.types.Mount(
-            "/export", os.path.abspath(to_dir or ""), type="bind"
-        ),
+        docker.types.Mount("/export", path, type="bind"),
         docker.types.Mount("/privateer", volume, type="volume", read_only=True),
     ]
     tarfile = f"{volume}-{isotimestamp()}.tar"
     src = "/privateer"
-    _run_tar_create(image, mounts, src, tarfile, dry_run)
-
-
-def _run_tar_create(image, mounts, src, tarfile, dry_run=True):
-    command = ["tar", "-cpvf", f"/export/{tarfile}", "."]
-    if dry_run:
-        cmd = [
-            "docker",
-            "run",
-            "--rm",
-            *mounts_str(mounts),
-            "-w",
-            src,
-            image,
-            *command,
-        ]
-        print("Command to manually run export")
-        print()
-        print(f"  {' '.join(cmd)}")
-        print()
-        print("(pay attention to the final '.' in the above command!)")
-        print()
-        print(f"This will data from the server '{name}' onto the host")
-        print(f"machine at '{export_path}' as '{tarfile}'.")
-        print(f"Data originally from '{source}'")
-        print()
-        print("Note that this file will have root ownership after creation")
-        print(f"You can fix that with 'sudo chown $(whoami) {tarfile}'")
-        print("or")
-        print()
-        cmd_own = take_ownership(tarfile, export_path, command_only=True)
-        print(f"  {' '.join(cmd_own)}")
-    else:
-        run_docker_command(
-            "Export",
-            image,
-            command=command,
-            mounts=mounts,
-            working_dir=src,
-        )
-        print("Taking ownership of file")
-        take_ownership(tarfile, export_path)
-        print(f"Tar file ready at '{export_path}/{tarfile}'")
+    _run_tar_create(mounts, src, path, tarfile, dry_run)
 
 
 def import_tar(volume, tarfile, *, dry_run=False):
@@ -102,9 +53,9 @@ def import_tar(volume, tarfile, *, dry_run=False):
         msg = f"Input file '{tarfile}' does not exist"
         raise Exception(msg)
 
-    # Use our image (not alpine) because we will require the -p tag to
+    # Use ubuntu (not alpine) because we will require the -p tag to
     # preserve permissions on tar
-    image = f"mrcide/privateer-client:{cfg.tag}"
+    image = "ubuntu"
     tarfile = os.path.abspath(tarfile)
     mounts = [
         docker.types.Mount("/src.tar", tarfile, type="bind", read_only=True),
@@ -128,12 +79,50 @@ def import_tar(volume, tarfile, *, dry_run=False):
         print(f"  docker volume create {volume}")
         print(f"  {' '.join(cmd)}")
     else:
-        ensure_image(image)
         docker.from_env().volumes.create(volume)
-        run_docker_command(
+        run_container_with_command(
             "Import",
             image,
             command=command,
             mounts=mounts,
             working_dir=working_dir,
         )
+
+
+def _run_tar_create(mounts, src, path, tarfile, dry_run):
+    image = "ubuntu"
+    command = ["tar", "-cpvf", f"/export/{tarfile}", "."]
+    if dry_run:
+        cmd = [
+            "docker",
+            "run",
+            "--rm",
+            *mounts_str(mounts),
+            "-w",
+            src,
+            image,
+            *command,
+        ]
+        print("Command to manually run export")
+        print()
+        print(f"  {' '.join(cmd)}")
+        print()
+        print("(pay attention to the final '.' in the above command!)")
+        print()
+        print("Note that this file will have root ownership after creation")
+        print(f"You can fix that with 'sudo chown $(whoami) {tarfile}'")
+        print("or")
+        print()
+        cmd_own = take_ownership(tarfile, path, command_only=True)
+        print(f"  {' '.join(cmd_own)}")
+    else:
+        run_container_with_command(
+            "Export",
+            image,
+            command=command,
+            mounts=mounts,
+            working_dir=src,
+        )
+        print("Taking ownership of file")
+        take_ownership(tarfile, path)
+        print(f"Tar file ready at '{path}/{tarfile}'")

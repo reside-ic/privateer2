@@ -4,13 +4,10 @@
   privateer2 [options] keygen (<name> | --all)
   privateer2 [options] configure <name>
   privateer2 [options] check [--connection]
-
   privateer2 [options] backup <volume> [--server=NAME]
   privateer2 [options] restore <volume> [--server=NAME] [--source=NAME]
-
   privateer2 [options] export <volume> [--to-dir=PATH] [--source=NAME]
   privateer2 [options] import <tarfile> <volume>
-
   privateer2 [options] server (start | stop | status)
   privateer2 [options] schedule (start | stop | status)
 
@@ -51,7 +48,7 @@ from privateer2.keys import keygen, keygen_all
 from privateer2.restore import restore
 from privateer2.schedule import schedule_start, schedule_status, schedule_stop
 from privateer2.server import server_start, server_status, server_stop
-from privateer2.tar import export_tar, import_tar
+from privateer2.tar import export_tar, export_tar_local, import_tar
 
 
 def pull(cfg):
