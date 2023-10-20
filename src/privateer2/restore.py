@@ -10,7 +10,7 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
     volume = match_value(volume, cfg.list_volumes(), "volume")
     source = find_source(cfg, volume, source)
     image = f"mrcide/privateer-client:{cfg.tag}"
-    dest_mount = f"/privateer/{volume}"
+    dest_mount = f"/privateer/volumes/{volume}"
     mounts = [
         docker.types.Mount(
             "/privateer/keys", machine.key_volume, type="volume", read_only=True

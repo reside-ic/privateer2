@@ -8,7 +8,7 @@ def backup_command(name, volume, server):
         "rsync",
         "-av",
         "--delete",
-        f"/privateer/{volume}",
+        f"/privateer/volumes/{volume}",
         f"{server}:/privateer/volumes/{name}",
     ]
 
@@ -18,7 +18,7 @@ def backup(cfg, name, volume, *, server=None, dry_run=False):
     server = match_value(server, cfg.list_servers(), "server")
     volume = match_value(volume, machine.backup, "volume")
     image = f"mrcide/privateer-client:{cfg.tag}"
-    src = f"/privateer/{volume}"
+    src = f"/privateer/volumes/{volume}"
     mounts = [
         docker.types.Mount(
             "/privateer/keys", machine.key_volume, type="volume", read_only=True

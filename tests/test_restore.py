@@ -26,10 +26,10 @@ def test_can_print_instructions_to_run_restore(capsys, managed_docker):
         assert "Command to manually run restore:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol}:/privateer/keys:ro -v data:/privateer/data "
+            f"-v {vol}:/privateer/keys:ro -v data:/privateer/volumes/data "
             f"mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete alice:/privateer/volumes/bob/data/ "
-            "/privateer/data/"
+            "/privateer/volumes/data/"
         )
         assert cmd in lines
 
@@ -54,14 +54,14 @@ def test_can_run_restore(monkeypatch, managed_docker):
             "-av",
             "--delete",
             "alice:/privateer/volumes/bob/data/",
-            "/privateer/data/",
+            "/privateer/volumes/data/",
         ]
         mounts = [
             docker.types.Mount(
                 "/privateer/keys", vol, type="volume", read_only=True
             ),
             docker.types.Mount(
-                "/privateer/data", "data", type="volume", read_only=False
+                "/privateer/volumes/data", "data", type="volume", read_only=False
             ),
         ]
         assert mock_run.call_count == 1
@@ -85,10 +85,10 @@ def test_restore_from_local_volume(capsys, managed_docker):
         assert "Command to manually run restore:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol}:/privateer/keys:ro -v other:/privateer/other "
+            f"-v {vol}:/privateer/keys:ro -v other:/privateer/volumes/other "
             f"mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete alice:/privateer/local/other/ "
-            "/privateer/other/"
+            "/privateer/volumes/other/"
         )
         assert cmd in lines
 
@@ -113,10 +113,10 @@ def test_restore_from_alternative_source(capsys, managed_docker):
         assert "Command to manually run restore:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol_dan}:/privateer/keys:ro -v data:/privateer/data "
+            f"-v {vol_dan}:/privateer/keys:ro -v data:/privateer/volumes/data "
             f"mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete carol:/privateer/volumes/bob/data/ "
-            "/privateer/data/"
+            "/privateer/volumes/data/"
         )
         assert cmd in lines
 
@@ -127,9 +127,9 @@ def test_restore_from_alternative_source(capsys, managed_docker):
         assert "Command to manually run restore:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol_dan}:/privateer/keys:ro -v other:/privateer/other "
-            f"mrcide/privateer-client:{cfg.tag} "
+            f"-v {vol_dan}:/privateer/keys:ro -v other:/privateer/volumes/other"
+            f" mrcide/privateer-client:{cfg.tag} "
             "rsync -av --delete carol:/privateer/local/other/ "
-            "/privateer/other/"
+            "/privateer/volumes/other/"
         )
         assert cmd in lines
