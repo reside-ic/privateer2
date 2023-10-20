@@ -20,7 +20,6 @@ def test_can_print_instructions_to_start_schedule(capsys, managed_docker):
         name = managed_docker("container")
         cfg.clients[0].key_volume = vol_keys
         cfg.clients[0].backup = [vol_data1, vol_data2]
-        cfg.clients[0].restore = [vol_data1, vol_data2]
         cfg.clients[0].backup = [vol_data1, vol_data2]
         cfg.clients[0].schedule.container = name
         cfg.clients[0].schedule.jobs[0].volume = vol_data1
@@ -57,7 +56,6 @@ def test_can_start_schedule(monkeypatch, managed_docker):
         name = managed_docker("container")
         cfg.clients[0].key_volume = vol_keys
         cfg.clients[0].backup = [vol_data1, vol_data2]
-        cfg.clients[0].restore = [vol_data1, vol_data2]
         cfg.clients[0].backup = [vol_data1, vol_data2]
         cfg.clients[0].schedule.container = name
         cfg.clients[0].schedule.jobs[0].volume = vol_data1
