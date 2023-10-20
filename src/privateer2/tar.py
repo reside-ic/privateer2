@@ -4,6 +4,7 @@ import docker
 from privateer2.check import check
 from privateer2.config import find_source
 from privateer2.util import (
+    ensure_image,
     isotimestamp,
     mounts_str,
     run_docker_command,
@@ -101,7 +102,9 @@ def import_tar(volume, tarfile, *, dry_run=False):
         msg = f"Input file '{tarfile}' does not exist"
         raise Exception(msg)
 
-    image = "alpine"
+    # Use our image (not alpine) because we will require the -p tag to
+    # preserve permissions on tar
+    image = f"mrcide/privateer-client:{cfg.tag}"
     tarfile = os.path.abspath(tarfile)
     mounts = [
         docker.types.Mount("/src.tar", tarfile, type="bind", read_only=True),
@@ -125,6 +128,7 @@ def import_tar(volume, tarfile, *, dry_run=False):
         print(f"  docker volume create {volume}")
         print(f"  {' '.join(cmd)}")
     else:
+        ensure_image(image)
         docker.from_env().volumes.create(volume)
         run_docker_command(
             "Import",
