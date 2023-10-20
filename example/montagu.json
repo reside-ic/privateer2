@@ -14,21 +14,17 @@
     "clients": [
         {
             "name": "production",
-            "backup": ["montagu_orderly_volume"],
-            "restore": ["montagu_orderly_volume", "barman_recover"]
+            "backup": ["montagu_orderly_volume"]
         },
         {
             "name": "production2",
-            "backup": ["montagu_orderly_volume"],
-            "restore": ["montagu_orderly_volume", "barman_recover"]
+            "backup": ["montagu_orderly_volume"]
         },
         {
-            "name": "science",
-            "restore": ["montagu_orderly_volume", "barman_recover"]
+            "name": "science"
         },
         {
-            "name": "uat",
-            "restore": ["montagu_orderly_volume", "barman_recover"]
+            "name": "uat"
         }
     ],
     "volumes": [

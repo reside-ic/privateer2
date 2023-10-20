@@ -7,7 +7,7 @@ from privateer2.util import match_value, mounts_str, run_container_with_command
 def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
     server = match_value(server, cfg.list_servers(), "server")
-    volume = match_value(volume, machine.backup, "volume")
+    volume = match_value(volume, cfg.list_volumes(), "volume")
     source = find_source(cfg, volume, source)
     image = f"mrcide/privateer-client:{cfg.tag}"
     dest_mount = f"/privateer/{volume}"
@@ -17,13 +17,12 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
         ),
         docker.types.Mount(dest_mount, volume, type="volume", read_only=False),
     ]
-    command = [
-        "rsync",
-        "-av",
-        "--delete",
-        f"{server}:/privateer/volumes/{name}/{volume}/",
-        f"{dest_mount}/",
-    ]
+    if source:
+        src = f"{server}:/privateer/volumes/{source}/{volume}/"
+    else:
+        src = f"{server}:/privateer/local/{volume}/"
+        source = "(source)"  # just for printing now
+    command = ["rsync", "-av", "--delete", src, f"{dest_mount}/"]
     if dry_run:
         cmd = ["docker", "run", "--rm", *mounts_str(mounts), image, *command]
         print("Command to manually run restore:")
@@ -37,7 +36,8 @@ def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
         print("contained within (config), along with our identity (id_rsa)")
         print("in the directory /privateer/keys")
     else:
-        print(f"Restoring '{volume}' from '{server}'")
+        print(f"Restoring '{volume}' from '{server}'; data originally")
+        print(f"from '{source}'")
         run_container_with_command(
             "Restore", image, command=command, mounts=mounts
         )

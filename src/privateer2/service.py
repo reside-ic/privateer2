@@ -49,7 +49,7 @@ def service_start(
         raise Exception(msg)
 
     ensure_image(image)
-    print("Starting server '{name}' as container '{container_name}'")
+    print(f"Starting server '{name}' as container '{container_name}'")
     client = docker.from_env()
     client.containers.run(
         image,

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, call
 import vault_dev
 
 import docker
+import privateer2.config
 import privateer2.restore
 from privateer2.config import read_config
 from privateer2.configure import configure
@@ -67,3 +68,68 @@ def test_can_run_restore(monkeypatch, managed_docker):
         assert mock_run.call_args == call(
             "Restore", image, command=command, mounts=mounts
         )
+
+
+def test_restore_from_local_volume(capsys, managed_docker):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/local.json")
+        cfg.vault.url = server.url()
+        vol = managed_docker("volume")
+        cfg.clients[0].key_volume = vol
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        capsys.readouterr()  # flush previous output
+        restore(cfg, "bob", "other", dry_run=True)
+        out = capsys.readouterr()
+        lines = out.out.strip().split("\n")
+        assert "Command to manually run restore:" in lines
+        cmd = (
+            "  docker run --rm "
+            f"-v {vol}:/privateer/keys:ro -v other:/privateer/other "
+            f"mrcide/privateer-client:{cfg.tag} "
+            "rsync -av --delete alice:/privateer/local/other/ "
+            "/privateer/other/"
+        )
+        assert cmd in lines
+
+
+def test_restore_from_alternative_source(capsys, managed_docker):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/complex.json")
+        cfg.vault.url = server.url()
+        vol_bob = managed_docker("volume")
+        vol_dan = managed_docker("volume")
+        cfg.clients[0].key_volume = vol_bob
+        cfg.clients[1].key_volume = vol_dan
+        keygen_all(cfg)
+        configure(cfg, "bob")
+        configure(cfg, "dan")
+        capsys.readouterr()  # flush previous output
+
+        # Data from carol, put there by bob, coming down to dan
+        restore(cfg, "dan", "data", source="bob", server="carol", dry_run=True)
+        out = capsys.readouterr()
+        lines = out.out.strip().split("\n")
+        assert "Command to manually run restore:" in lines
+        cmd = (
+            "  docker run --rm "
+            f"-v {vol_dan}:/privateer/keys:ro -v data:/privateer/data "
+            f"mrcide/privateer-client:{cfg.tag} "
+            "rsync -av --delete carol:/privateer/volumes/bob/data/ "
+            "/privateer/data/"
+        )
+        assert cmd in lines
+
+        # Data from carol, local volume, coming down to dan
+        restore(cfg, "dan", "other", source=None, server="carol", dry_run=True)
+        out = capsys.readouterr()
+        lines = out.out.strip().split("\n")
+        assert "Command to manually run restore:" in lines
+        cmd = (
+            "  docker run --rm "
+            f"-v {vol_dan}:/privateer/keys:ro -v other:/privateer/other "
+            f"mrcide/privateer-client:{cfg.tag} "
+            "rsync -av --delete carol:/privateer/local/other/ "
+            "/privateer/other/"
+        )
+        assert cmd in lines

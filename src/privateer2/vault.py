@@ -25,7 +25,8 @@ def _get_vault_token(token):
     for token_type in check:
         if token_type in os.environ:
             return os.environ[token_type]
-    return input("Enter token for vault: ").strip()
+    prompt = "Enter GitHub or Vault token to log into the vault:\n> "
+    return input(prompt).strip()
 
 
 def _is_github_token(token):

@@ -13,7 +13,6 @@ def test_can_read_config():
     assert len(cfg.clients) == 1
     assert cfg.clients[0].name == "bob"
     assert cfg.clients[0].backup == ["data"]
-    assert cfg.clients[0].restore == ["data"]
     assert len(cfg.volumes) == 1
     assert cfg.volumes[0].name == "data"
     assert cfg.vault.url == "http://localhost:8200"
@@ -82,14 +81,6 @@ def test_machines_cannot_be_client_and_server():
     tmp.name = "alice"
     cfg.clients.append(tmp)
     msg = "Invalid machine listed as both a client and a server: 'alice'"
-    with pytest.raises(Exception, match=msg):
-        _check_config(cfg)
-
-
-def test_restore_volumes_are_known():
-    cfg = read_config("example/simple.json")
-    cfg.clients[0].restore.append("other")
-    msg = "Client 'bob' restores from unknown volume 'other'"
     with pytest.raises(Exception, match=msg):
         _check_config(cfg)
 

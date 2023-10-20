@@ -4,17 +4,30 @@
             "name": "alice",
             "hostname": "alice.example.com",
             "port": 10022
+        },
+        {
+            "name": "carol",
+            "hostname": "alice.example.com",
+            "port": 10022
         }
     ],
     "clients": [
         {
             "name": "bob",
             "backup": ["data"]
+        },
+        {
+            "name": "dan",
+            "backup": []
         }
     ],
     "volumes": [
         {
             "name": "data"
+        },
+        {
+            "name": "other",
+            "local": true
         }
     ],
     "vault": {

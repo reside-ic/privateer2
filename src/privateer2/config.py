@@ -24,7 +24,6 @@ class Server(BaseModel):
 class Client(BaseModel):
     name: str
     backup: List[str] = []
-    restore: List[str] = []
     key_volume: str = "privateer_keys"
 
 
@@ -57,6 +56,9 @@ class Config(BaseModel):
     def list_clients(self):
         return [x.name for x in self.clients]
 
+    def list_volumes(self):
+        return [x.name for x in self.volumes]
+
     def machine_config(self, name):
         for el in self.servers + self.clients:
             if el.name == name:
@@ -75,7 +77,7 @@ def find_source(cfg, volume, source):
             if source is not None:
                 msg = f"'{volume}' is a local source, so 'source' must be empty"
                 raise Exception(msg)
-            return "local"
+            return None
     pos = [cl.name for cl in cfg.clients if volume in cl.backup]
     return match_value(source, pos, "source")
 
@@ -93,10 +95,6 @@ def _check_config(cfg):
     vols_local = [x.name for x in cfg.volumes if x.local]
     vols_all = [x.name for x in cfg.volumes]
     for cl in cfg.clients:
-        for v in cl.restore:
-            if v not in vols_all:
-                msg = f"Client '{cl.name}' restores from unknown volume '{v}'"
-                raise Exception(msg)
         for v in cl.backup:
             if v not in vols_all:
                 msg = f"Client '{cl.name}' backs up unknown volume '{v}'"
