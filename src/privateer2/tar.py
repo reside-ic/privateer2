@@ -108,7 +108,7 @@ def import_tar(volume, tarfile, *, dry_run=False):
         docker.types.Mount("/privateer", volume, type="volume"),
     ]
     working_dir = "/privateer"
-    command = ["tar", "-xvf", "/src.tar"]
+    command = ["tar", "-xvpf", "/src.tar"]
     if dry_run:
         cmd = [
             "docker",
