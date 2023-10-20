@@ -75,7 +75,7 @@ def find_source(cfg, volume, source):
             if source is not None:
                 msg = f"'{volume}' is a local source, so 'source' must be empty"
                 raise Exception(msg)
-            return "local"
+            return None
     pos = [cl.name for cl in cfg.clients if volume in cl.backup]
     return match_value(source, pos, "source")
 

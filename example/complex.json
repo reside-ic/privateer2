@@ -1,0 +1,39 @@
+{
+    "servers": [
+        {
+            "name": "alice",
+            "hostname": "alice.example.com",
+            "port": 10022
+        },
+        {
+            "name": "carol",
+            "hostname": "alice.example.com",
+            "port": 10022
+        }
+    ],
+    "clients": [
+        {
+            "name": "bob",
+            "backup": ["data"],
+            "restore": ["data", "other"]
+        },
+        {
+            "name": "dan",
+            "backup": [],
+            "restore": ["data", "other"]
+        }
+    ],
+    "volumes": [
+        {
+            "name": "data"
+        },
+        {
+            "name": "other",
+            "local": true
+        }
+    ],
+    "vault": {
+        "url": "http://localhost:8200",
+        "prefix": "/secret/privateer"
+    }
+}
