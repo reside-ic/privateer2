@@ -12,7 +12,6 @@
         {
             "name": "bob",
             "backup": ["data"],
-            "restore": ["data", "other"],
             "key_volume": "privateer_keys_bob"
         }
     ],

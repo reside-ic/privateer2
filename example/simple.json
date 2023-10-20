@@ -9,8 +9,7 @@
     "clients": [
         {
             "name": "bob",
-            "backup": ["data"],
-            "restore": ["data"]
+            "backup": ["data"]
         }
     ],
     "volumes": [

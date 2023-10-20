@@ -7,7 +7,7 @@ from privateer2.util import match_value, mounts_str, run_container_with_command
 def restore(cfg, name, volume, *, server=None, source=None, dry_run=False):
     machine = check(cfg, name, quiet=True)
     server = match_value(server, cfg.list_servers(), "server")
-    volume = match_value(volume, machine.restore, "volume")
+    volume = match_value(volume, cfg.list_volumes(), "volume")
     source = find_source(cfg, volume, source)
     image = f"mrcide/privateer-client:{cfg.tag}"
     dest_mount = f"/privateer/{volume}"

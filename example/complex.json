@@ -14,13 +14,11 @@
     "clients": [
         {
             "name": "bob",
-            "backup": ["data"],
-            "restore": ["data", "other"]
+            "backup": ["data"]
         },
         {
             "name": "dan",
-            "backup": [],
-            "restore": ["data", "other"]
+            "backup": []
         }
     ],
     "volumes": [
