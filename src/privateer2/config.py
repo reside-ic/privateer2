@@ -58,7 +58,7 @@ class Config(BaseModel):
     clients: List[Client]
     volumes: List[Volume]
     vault: Vault
-    tag: str = "reside-352"
+    tag: str = "latest"
 
     def model_post_init(self, __context):
         _check_config(self)

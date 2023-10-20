@@ -35,8 +35,8 @@ jobs:
           pip install hatch
       - name: Pull images
         run: |
-          docker pull mrcide/privateer-server:reside-352
-          docker pull mrcide/privateer-client:reside-352
+          docker pull mrcide/privateer-server:latest
+          docker pull mrcide/privateer-client:latest
       - name: Test
         run: |
           hatch run cov-ci
