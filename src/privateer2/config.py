@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -10,6 +10,18 @@ from privateer2.vault import vault_client
 def read_config(path):
     with open(path) as f:
         return Config(**json.loads(f.read().strip()))
+
+
+class ScheduleJob(BaseModel):
+    server: str
+    volume: str
+    schedule: str
+
+
+class Schedule(BaseModel):
+    port: Optional[int] = None
+    container: str = "privateer_scheduler"
+    jobs: List[ScheduleJob]
 
 
 class Server(BaseModel):
@@ -25,6 +37,7 @@ class Client(BaseModel):
     name: str
     backup: List[str] = []
     key_volume: str = "privateer_keys"
+    schedule: Optional[Schedule] = None
 
 
 class Volume(BaseModel):
@@ -45,7 +58,7 @@ class Config(BaseModel):
     clients: List[Client]
     volumes: List[Volume]
     vault: Vault
-    tag: str = "latest"
+    tag: str = "reside-352"
 
     def model_post_init(self, __context):
         _check_config(self)
@@ -102,6 +115,20 @@ def _check_config(cfg):
             if v in vols_local:
                 msg = f"Client '{cl.name}' backs up local volume '{v}'"
                 raise Exception(msg)
+        if cl.schedule:
+            for j in cl.schedule.jobs:
+                if j.server not in servers:
+                    msg = (
+                        f"Client '{cl.name}' scheduling backup to "
+                        f"unknown server '{j.server}'"
+                    )
+                    raise Exception(msg)
+                if j.volume not in cl.backup:
+                    msg = (
+                        f"Client '{cl.name}' scheduling backup of "
+                        f"volume '{j.volume}', which it does not back up"
+                    )
+                    raise Exception(msg)
     if cfg.vault.prefix.startswith("/secret"):
         cfg.vault.prefix = cfg.vault.prefix[7:]
 

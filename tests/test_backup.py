@@ -25,9 +25,10 @@ def test_can_print_instructions_to_run_backup(capsys, managed_docker):
         assert "Command to manually run backup:" in lines
         cmd = (
             "  docker run --rm "
-            f"-v {vol}:/privateer/keys:ro -v data:/privateer/data:ro "
+            f"-v {vol}:/privateer/keys:ro -v data:/privateer/volumes/data:ro "
             f"mrcide/privateer-client:{cfg.tag} "
-            "rsync -av --delete /privateer/data alice:/privateer/volumes/bob"
+            "rsync -av --delete /privateer/volumes/data "
+            "alice:/privateer/volumes/bob"
         )
         assert cmd in lines
 
@@ -51,7 +52,7 @@ def test_can_run_backup(monkeypatch, managed_docker):
             "rsync",
             "-av",
             "--delete",
-            "/privateer/data",
+            "/privateer/volumes/data",
             "alice:/privateer/volumes/bob",
         ]
         mounts = [
@@ -59,7 +60,7 @@ def test_can_run_backup(monkeypatch, managed_docker):
                 "/privateer/keys", vol, type="volume", read_only=True
             ),
             docker.types.Mount(
-                "/privateer/data", "data", type="volume", read_only=True
+                "/privateer/volumes/data", "data", type="volume", read_only=True
             ),
         ]
         assert mock_run.call_count == 1

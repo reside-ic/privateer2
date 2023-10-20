@@ -25,7 +25,7 @@ def test_can_print_instructions_to_start_server(capsys, managed_docker):
         server_start(cfg, "alice", dry_run=True)
         out = capsys.readouterr()
         lines = out.out.strip().split("\n")
-        assert "Command to manually launch server:" in lines
+        assert "Command to manually launch service container:" in lines
         cmd = (
             f"  docker run --rm -d --name {name} "
             f"-v {vol_keys}:/privateer/keys:ro "

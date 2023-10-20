@@ -293,3 +293,43 @@ def test_clean_path(tmp_path):
     assert _path_config("example/simple.json") == "example/simple.json"
     with transient_working_directory(str(tmp_path)):
         assert _path_config(None) == "privateer.json"
+
+
+def test_can_parse_schedule_start(tmp_path):
+    shutil.copy("example/schedule.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("bob\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["schedule", "start"])
+    assert res.target == privateer2.cli.schedule_start
+    assert res.kwargs == {
+        "cfg": read_config("example/schedule.json"),
+        "name": "bob",
+        "dry_run": False,
+    }
+
+
+def test_can_parse_schedule_status(tmp_path):
+    shutil.copy("example/schedule.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("bob\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["schedule", "status"])
+    assert res.target == privateer2.cli.schedule_status
+    assert res.kwargs == {
+        "cfg": read_config("example/schedule.json"),
+        "name": "bob",
+    }
+
+
+def test_can_parse_schedule_stop(tmp_path):
+    shutil.copy("example/schedule.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("bob\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["schedule", "stop"])
+    assert res.target == privateer2.cli.schedule_stop
+    assert res.kwargs == {
+        "cfg": read_config("example/schedule.json"),
+        "name": "bob",
+    }

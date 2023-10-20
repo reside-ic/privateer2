@@ -19,6 +19,7 @@ def test_can_read_config():
     assert cfg.vault.prefix == "/privateer"
     assert cfg.list_servers() == ["alice"]
     assert cfg.list_clients() == ["bob"]
+    assert cfg.clients[0].schedule is None
 
 
 def test_can_create_vault_client():
@@ -134,3 +135,36 @@ def test_can_strip_leading_secret_from_path():
     cfg.vault.prefix = "/my/path"
     _check_config(cfg)
     assert cfg.vault.prefix == "/my/path"
+
+
+def test_can_read_config_with_schedule():
+    cfg = read_config("example/schedule.json")
+    schedule = cfg.clients[0].schedule
+    assert schedule.container == "privateer_scheduler"
+    assert schedule.port == 8080
+    assert len(schedule.jobs) == 2
+    assert schedule.jobs[0].server == "alice"
+    assert schedule.jobs[0].volume == "data1"
+    assert schedule.jobs[0].schedule == "@daily"
+    assert schedule.jobs[1].server == "alice"
+    assert schedule.jobs[1].volume == "data2"
+    assert schedule.jobs[1].schedule == "@weekly"
+
+
+def test_can_validate_schedule_goes_to_correct_server():
+    cfg = read_config("example/schedule.json")
+    cfg.clients[0].schedule.jobs[1].server = "carol"
+    msg = "Client 'bob' scheduling backup to unknown server 'carol'"
+    with pytest.raises(Exception, match=msg):
+        _check_config(cfg)
+
+
+def test_can_validate_schedule_backs_up_correct_volume():
+    cfg = read_config("example/schedule.json")
+    cfg.clients[0].backup = ["data1"]
+    msg = (
+        "Client 'bob' scheduling backup of volume 'data2', "
+        "which it does not back up"
+    )
+    with pytest.raises(Exception, match=msg):
+        _check_config(cfg)
