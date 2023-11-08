@@ -2,6 +2,7 @@ import os
 import tarfile
 from unittest.mock import MagicMock, call
 
+import pytest
 import vault_dev
 
 import docker
@@ -90,3 +91,51 @@ def test_can_export_managed_volume(monkeypatch, managed_docker):
     tarfile = call_args[0][3]
     src = "/privateer/bob/data"
     assert call_args == call(mounts, src, path, tarfile, False)
+
+
+def test_can_export_local_managed_volume(monkeypatch, managed_docker):
+    mock_tar_local = MagicMock()
+    mock_tar_create = MagicMock()
+    monkeypatch.setattr(privateer2.tar, "_run_tar_create", mock_tar_create)
+    monkeypatch.setattr(privateer2.tar, "export_tar_local", mock_tar_local)
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/local.json")
+        cfg.vault.url = server.url()
+        vol_keys = managed_docker("volume")
+        vol_data = managed_docker("volume")
+        vol_other = managed_docker("volume")
+        name = managed_docker("container")
+        cfg.servers[0].key_volume = vol_keys
+        cfg.servers[0].data_volume = vol_data
+        cfg.servers[0].container = name
+        cfg.volumes[1].name = vol_other
+        keygen_all(cfg)
+        configure(cfg, "alice")
+    path = export_tar(cfg, "alice", vol_other)
+    assert mock_tar_create.call_count == 0
+    assert mock_tar_local.call_count == 1
+    assert mock_tar_local.call_args == call(
+        vol_other, to_dir=None, dry_run=False
+    )
+    assert path == mock_tar_local.return_value
+
+
+def test_throw_if_local_volume_does_not_exist(managed_docker):
+    vol = managed_docker("volume")
+    msg = f"Volume '{vol}' does not exist"
+    with pytest.raises(Exception, match=msg):
+        export_tar_local(vol)
+
+
+def test_throw_if_volume_does_not_exist(managed_docker):
+    with vault_dev.Server(export_token=True) as server:
+        cfg = read_config("example/simple.json")
+        cfg.vault.url = server.url()
+        vol = managed_docker("volume")
+        cfg.servers[0].key_volume = managed_docker("volume")
+        cfg.servers[0].data_volume = vol
+        cfg.servers[0].container = managed_docker("container")
+        keygen_all(cfg)
+        configure(cfg, "alice")
+    with pytest.raises(Exception, match="Unknown volume 'unknown'"):
+        export_tar(cfg, "alice", "unknown")

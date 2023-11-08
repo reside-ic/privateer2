@@ -112,6 +112,8 @@ def test_can_find_appropriate_source():
     msg = "Invalid source 'alice': valid options: 'bob', 'carol'"
     with pytest.raises(Exception, match=msg):
         find_source(cfg, "data", "alice")
+    with pytest.raises(Exception, match="Unknown volume 'unknown'"):
+        find_source(cfg, "unknown", "alice")
 
 
 def test_can_find_appropriate_source_if_local():
