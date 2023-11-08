@@ -166,3 +166,20 @@ def test_instructions_to_import_volume(managed_docker, tmp_path, capsys):
     assert "Command to manually run import:" in lines
     assert f"  docker volume create {dest}" in lines
     assert cmd in lines
+
+
+def test_dont_import_into_existing_volume(tmp_path, managed_docker):
+    dest = managed_docker("volume")
+    docker.from_env().volumes.create(dest)
+    path = str(tmp_path / "foo.tar")
+    msg = f"Volume '{dest}' already exists, please delete first"
+    with pytest.raises(Exception, match=msg):
+        import_tar(dest, path)
+
+
+def test_throw_if_tarfile_does_not_exist(tmp_path, managed_docker):
+    dest = managed_docker("volume")
+    path = str(tmp_path / "foo.tar")
+    msg = f"Input file '{path}' does not exist"
+    with pytest.raises(Exception, match=msg):
+        import_tar(dest, path)
