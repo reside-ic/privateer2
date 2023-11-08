@@ -11,7 +11,7 @@ import privateer2.util
 from privateer2.config import read_config
 from privateer2.configure import configure
 from privateer2.keys import keygen_all
-from privateer2.tar import export_tar, export_tar_local
+from privateer2.tar import export_tar, export_tar_local, import_tar
 
 
 def test_can_print_instructions_for_exporting_local_vol(managed_docker, capsys):
@@ -139,3 +139,30 @@ def test_throw_if_volume_does_not_exist(managed_docker):
         configure(cfg, "alice")
     with pytest.raises(Exception, match="Unknown volume 'unknown'"):
         export_tar(cfg, "alice", "unknown")
+
+
+def test_import_volume(managed_docker, tmp_path):
+    src = managed_docker("volume")
+    dest = managed_docker("volume")
+    privateer2.util.string_to_volume("hello", src, "test")
+    path = export_tar_local(src, to_dir=tmp_path)
+    import_tar(dest, path)
+    assert privateer2.util.string_from_volume(dest, "test") == "hello"
+
+
+def test_instructions_to_import_volume(managed_docker, tmp_path, capsys):
+    src = managed_docker("volume")
+    dest = managed_docker("volume")
+    privateer2.util.string_to_volume("hello", src, "test")
+    path = export_tar_local(src, to_dir=tmp_path)
+    capsys.readouterr()
+    import_tar(dest, path, dry_run=True)
+    out = capsys.readouterr()
+    lines = out.out.strip().split("\n")
+    cmd = (
+        f"  docker run --rm -v {path}:/src.tar:ro "
+        f"-v {dest}:/privateer -w /privateer ubuntu tar -xvpf /src.tar"
+    )
+    assert "Command to manually run import:" in lines
+    assert f"  docker volume create {dest}" in lines
+    assert cmd in lines
