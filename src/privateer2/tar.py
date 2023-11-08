@@ -27,7 +27,7 @@ def export_tar(cfg, name, volume, *, to_dir=None, source=None, dry_run=False):
     ]
     tarfile = f"{source}-{volume}-{isotimestamp()}.tar"
     src = f"/privateer/{source}/{volume}"
-    _run_tar_create(mounts, src, path, tarfile, dry_run)
+    return _run_tar_create(mounts, src, path, tarfile, dry_run)
 
 
 def export_tar_local(volume, *, to_dir=None, dry_run=False):
@@ -42,7 +42,7 @@ def export_tar_local(volume, *, to_dir=None, dry_run=False):
     ]
     tarfile = f"{volume}-{isotimestamp()}.tar"
     src = "/privateer"
-    _run_tar_create(mounts, src, path, tarfile, dry_run)
+    return _run_tar_create(mounts, src, path, tarfile, dry_run)
 
 
 def import_tar(volume, tarfile, *, dry_run=False):
@@ -74,7 +74,7 @@ def import_tar(volume, tarfile, *, dry_run=False):
             image,
             *command,
         ]
-        print("Command to manually run import")
+        print("Command to manually run import:")
         print()
         print(f"  docker volume create {volume}")
         print(f"  {' '.join(cmd)}")
@@ -103,7 +103,7 @@ def _run_tar_create(mounts, src, path, tarfile, dry_run):
             image,
             *command,
         ]
-        print("Command to manually run export")
+        print("Command to manually run export:")
         print()
         print(f"  {' '.join(cmd)}")
         print()
@@ -126,3 +126,4 @@ def _run_tar_create(mounts, src, path, tarfile, dry_run):
         print("Taking ownership of file")
         take_ownership(tarfile, path)
         print(f"Tar file ready at '{path}/{tarfile}'")
+    return os.path.join(path, tarfile)
