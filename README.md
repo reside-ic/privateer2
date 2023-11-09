@@ -44,13 +44,33 @@ privateer2 configure <name>
 
 replacing `<name>` with the name of the machine within either the `servers` or `clients` section of your configuration.  This sets up a special docker volume that will persist ssh keys and configurations so that communication between clients and servers is straightforward and secure.  It also leaves a file `.privateer_identity` at the same location as the configuration file, which is used as the default identity for subsequent commands. Typically this is what you want.
 
+Servers must be started before any backup is possible. To do this, run
+
+```
+privateer2 server start
+```
+
+Once started you can stop a server with `privateer2 server stop` (or just kill the container) and find out how it's getting on with `privateer2 server status`
+
 ### Manual backup
+
+To back up a volume onto one of your configured servers, run:
 
 ```
 privateer2 backup <volume> [--server=NAME]
 ```
 
-Add `--dry-run` to see the commands to run it yourself
+Add `--dry-run` to see the commands to run it yourself.
+
+### Scheduled backups
+
+Each client can run a long-lived container to perform backups on some schedule using [`yacron`](https://github.com/gjcarneiro/yacron). If your client configuration contains a `schedule` section then you can run the command
+
+```
+privateer2 schedule start
+```
+
+to start the scheduled tasks.
 
 ### Restore
 
@@ -68,6 +88,41 @@ For example, if you are on a "staging" machine, connecting to the "backup" serve
 privateer2 restore user_data --server=backup --source=production
 ```
 
+### Point-in-time backup and recovery
+
+Point-in-time backup is always taken on the server side, and converts a copy of a volume held on the server to a `tar` file, on the host machine and outside of any docker volume. These can then be manually copied around and use to initialise the contents of new volumes, in a way similar to the normal restore path.
+
+The command to export the volume is:
+
+```
+privateer2 export <volume> [--to-dir=PATH] [--source=NAME]
+```
+
+which will bring up a new container and create the tar file within the directory `PATH`. The name will be automatically generated and include the curent time, volume name and source.  The `source` argument controls who backed the volume up in the first place, in the case where there are multiple clients.  It can be omitted in the case where there is only one client performing backups, and **must** be ommitted in the case where you are exporting a local volume.
+
+You can point this command at any volume on any system where `privateer2` is installed to make a `tar` file; this might be useful for ad-hoc backup and recovery. If you have a volume called `redis_data`, then 
+
+```
+privateer2 export redis_data
+```
+
+will create a new file `redis_data-<timestamp>.tar` in your working directory.
+
+Given a `tar` file, recovery looks like:
+
+```
+privateer2 [--dry-run] import <tarfile> <volume>
+```
+
+This does not need to be run anywhere with a `privateer.json` configuration, and indeed does not try and read one. It will fail if the volume exists already, making the command fairly safe.
+
+We could copy the file created in the `redis_data` example above to another machine and run
+
+```
+privateer2 import redis_data-<timestamp>.tar redis_data
+```
+
+to export the `tar` file into a new volume `redis_data`.
 
 ## What's the problem anyway?
 
@@ -90,7 +145,7 @@ bob                            alice
 +-------------------+          +-----------------------+
 ```
 
-so in this case `bob` runs a privateer client which sends data over ssh+rsync to a server running on `alice`, eventually meaning that the data in `volume1` on `bob` is replicated to `volume2` on `alice`.  This process uses a set of ssh keys that each client and server will hold in a `keys` volume.  This means that they do not interact with any ssh systems on the host.  Note that if `alice` is also running sshd, this backup process will use a *second* ssh connection.
+so in this case `bob` runs a `privateer2` client which sends data over ssh+rsync to a server running on `alice`, eventually meaning that the data in `volume1` on `bob` is replicated to `volume2` on `alice`.  This process uses a set of ssh keys that each client and server will hold in a `keys` volume.  This means that they do not interact with any ssh systems on the host.  Note that if `alice` is also running sshd, this backup process will use a *second* ssh connection.
 
 In addition, we will support point-in-time backups on `alice`, creating `tar` files of the volume onto disk that can be easily restored onto any host.
 

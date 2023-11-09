@@ -33,6 +33,17 @@ def test_can_parse_version():
     assert res.kwargs == {}
 
 
+def test_can_parse_import():
+    res = _parse_argv(["import", "--dry-run", "f", "v"])
+    assert res.target == privateer2.cli.import_tar
+    assert res.kwargs == {"volume": "v", "tarfile": "f", "dry_run": True}
+    assert not _parse_argv(["import", "f", "v"]).kwargs["dry_run"]
+    with pytest.raises(Exception, match="Don't use '--path' with 'import'"):
+        _parse_argv(["--path=privateer.json", "import", "f", "v"])
+    with pytest.raises(Exception, match="Don't use '--as' with 'import'"):
+        _parse_argv(["--as=alice", "import", "f", "v"])
+
+
 def test_can_parse_keygen_all():
     res = _parse_argv(["keygen", "--path=example/simple.json", "--all"])
     assert res.target == privateer2.cli.keygen_all
@@ -210,6 +221,37 @@ def test_can_parse_complex_restore(tmp_path):
         "source": "bob",
         "dry_run": False,
     }
+
+
+def test_can_parse_export(tmp_path):
+    shutil.copy("example/simple.json", tmp_path / "privateer.json")
+    with open(tmp_path / ".privateer_identity", "w") as f:
+        f.write("alice\n")
+    with transient_working_directory(tmp_path):
+        res = _parse_argv(["export", "v"])
+    assert res.target == privateer2.cli.export_tar
+    assert res.kwargs == {
+        "cfg": read_config("example/simple.json"),
+        "name": "alice",
+        "volume": "v",
+        "to_dir": None,
+        "source": None,
+        "dry_run": False,
+    }
+
+
+def test_can_parse_local_export():
+    res = _parse_argv(["export", "v", "--source=local"])
+    assert res.target == privateer2.cli.export_tar_local
+    assert res.kwargs == {
+        "volume": "v",
+        "to_dir": None,
+        "dry_run": False,
+    }
+    with pytest.raises(Exception, match="Don't use '--as'"):
+        _parse_argv(["export", "v", "--source=local", "--as=bob"])
+    with pytest.raises(Exception, match="Don't use '--path'"):
+        _parse_argv(["export", "v", "--source=local", "--path=p"])
 
 
 def test_error_if_unknown_identity(tmp_path):

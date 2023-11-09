@@ -85,6 +85,9 @@ class Config(BaseModel):
 # this could be put elsewhere; we find the plausible sources (original
 # clients) that backed up a source to any server.
 def find_source(cfg, volume, source):
+    if volume not in cfg.list_volumes():
+        msg = f"Unknown volume '{volume}'"
+        raise Exception(msg)
     for v in cfg.volumes:
         if v.name == volume and v.local:
             if source is not None:

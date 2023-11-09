@@ -148,6 +148,7 @@ def test_can_take_ownership_of_a_file(tmp_path, managed_docker):
     expected = [
         "docker",
         "run",
+        "--rm",
         *privateer2.util.mounts_str(mounts),
         "-w",
         "/src",

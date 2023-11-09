@@ -115,12 +115,14 @@ def test_can_find_appropriate_source():
     msg = "Invalid source 'alice': valid options: 'bob', 'carol'"
     with pytest.raises(Exception, match=msg):
         find_source(cfg, "data", "alice")
+    with pytest.raises(Exception, match="Unknown volume 'unknown'"):
+        find_source(cfg, "unknown", "alice")
 
 
 def test_can_find_appropriate_source_if_local():
     cfg = read_config("example/simple.json")
     cfg.volumes[0].local = True
-    find_source(cfg, "data", None)
+    assert find_source(cfg, "data", None) is None
     msg = "'data' is a local source, so 'source' must be empty"
     with pytest.raises(Exception, match=msg):
         find_source(cfg, "data", "bob")
