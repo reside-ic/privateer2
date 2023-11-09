@@ -5,7 +5,8 @@
             "hostname": "alice.example.com",
             "port": 10022,
             "key_volume": "privateer_keys_alice",
-            "data_volume": "privateer_data_alice"
+            "data_volume": "privateer_data_alice",
+            "container": "privateer_server"
         }
     ],
     "clients": [

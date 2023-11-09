@@ -28,9 +28,9 @@ class Server(BaseModel):
     name: str
     hostname: str
     port: int
-    key_volume: str = "privateer_keys"
-    data_volume: str = "privateer_data"
-    container: str = "privateer_server"
+    key_volume: str
+    data_volume: str
+    container: str
 
 
 class Client(BaseModel):

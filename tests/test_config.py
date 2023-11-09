@@ -40,7 +40,10 @@ def test_validation_is_run_on_load(tmp_path):
         {
             "name": "alice",
             "hostname": "alice.example.com",
-            "port": 10022
+            "port": 10022,
+            "key_volume": "privateer_keys",
+            "data_volume": "privateer_data",
+            "container": "privateer_server"
         }
     ],
     "clients": [

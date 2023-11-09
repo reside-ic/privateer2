@@ -3,12 +3,18 @@
         {
             "name": "annex",
             "hostname": "annex.montagu.dide.ic.ac.uk",
-            "port": 10022
+            "port": 10022,
+            "key_volume": "privateer_montagu_keys",
+            "data_volume": "privateer_montagu_data",
+            "container": "privateer_montagu_server"
         },
         {
             "name": "annex2",
             "hostname": "annex2.montagu.dide.ic.ac.uk",
-            "port": 10022
+            "port": 10022,
+            "key_volume": "privateer_montagu_keys",
+            "data_volume": "privateer_montagu_data",
+            "container": "privateer_montagu_server"
         }
     ],
     "clients": [
